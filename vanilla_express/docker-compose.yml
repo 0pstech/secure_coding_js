@@ -4,31 +4,40 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
+      - "8080:8080"
     environment:
-      - NODE_ENV=development
-      - DB_HOST=db
-      - DB_USER=user
+      - PORT=8080
+      - DB_HOST=mysql
+      - DB_USER=root
       - DB_PASSWORD=password
       - DB_NAME=secure_coding
       - DB_PORT=3306
     depends_on:
-      - db
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - /app/node_modules
+    command: sh -c "sleep 10 && npm run init-db && npm run dev"
 
-  db:
+  mysql:
     image: mysql:8.0
     ports:
       - "3306:3306"
     environment:
+      - MYSQL_ROOT_PASSWORD=password
       - MYSQL_DATABASE=secure_coding
       - MYSQL_USER=user
       - MYSQL_PASSWORD=password
-      - MYSQL_ROOT_PASSWORD=rootpassword
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./src/config/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data: 

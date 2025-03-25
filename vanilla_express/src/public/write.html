@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 작성</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- TinyMCE -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <style>
+        .navbar {
+            margin-bottom: 2rem;
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">게시판</a>
+            <div class="ms-auto">
+                <span id="userInfo" class="me-3"></span>
+                <button id="loginBtn" class="btn btn-primary me-2">로그인</button>
+                <button id="logoutBtn" class="btn btn-danger" style="display: none;">로그아웃</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 게시글 작성 폼 -->
+    <div class="container form-container">
+        <h2 class="mb-4">게시글 작성</h2>
+        <form id="postForm">
+            <div class="mb-3">
+                <label for="title" class="form-label">제목</label>
+                <input type="text" class="form-control" id="title" required>
+            </div>
+            <div class="mb-3">
+                <label for="content" class="form-label">내용</label>
+                <textarea id="content" class="form-control"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="permission" class="form-label">권한</label>
+                <select class="form-select" id="permission">
+                    <option value="public">공개</option>
+                    <option value="private">비공개</option>
+                </select>
+            </div>
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" onclick="history.back()">취소</button>
+                <button type="submit" class="btn btn-primary">작성</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // TinyMCE 초기화
+        tinymce.init({
+            selector: '#content',
+            height: 400,
+            plugins: 'lists link image table code help wordcount',
+            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code',
+            language: 'ko_KR'
+        });
+
+        // URL에서 게시글 ID 가져오기 (수정 모드 확인용)
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+
+        // 로그인 상태 확인
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/auth/status');
+                const data = await response.json();
+                if (data.isLoggedIn) {
+                    document.getElementById('userInfo').textContent = `${data.username}님 환영합니다`;
+                    document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('userInfo').textContent = '';
+                    document.getElementById('loginBtn').style.display = 'inline-block';
+                    document.getElementById('logoutBtn').style.display = 'none';
+                    alert('로그인이 필요합니다.');
+                    location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('로그인 상태 확인 실패:', error);
+            }
+        }
+
+        // 게시글 수정 모드일 경우 데이터 로드
+        async function loadPost() {
+            if (postId) {
+                try {
+                    const response = await fetch(`/api/posts/${postId}`);
+                    const post = await response.json();
+                    
+                    document.getElementById('title').value = post.title;
+                    tinymce.get('content').setContent(post.content);
+                    document.getElementById('permission').value = post.permission;
+                } catch (error) {
+                    console.error('게시글 로드 실패:', error);
+                }
+            }
+        }
+
+        // 이벤트 리스너 등록
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            location.href = '/login.html';
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                location.reload();
+            } catch (error) {
+                console.error('로그아웃 실패:', error);
+            }
+        });
+
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const content = tinymce.get('content').getContent();
+            const permission = document.getElementById('permission').value;
+
+            try {
+                const url = postId ? `/api/posts/${postId}` : '/api/posts';
+                const method = postId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, content, permission })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(data.message);
+                    location.href = postId ? `/post.html?id=${postId}` : '/';
+                } else {
+                    const error = await response.json();
+                    alert(error.message);
+                }
+            } catch (error) {
+                console.error('게시글 저장 실패:', error);
+                alert('게시글 저장 중 오류가 발생했습니다.');
+            }
+        });
+
+        // 초기 로드
+        checkLoginStatus();
+        loadPost();
+    </script>
+</body>
+</html> 

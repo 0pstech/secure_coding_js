@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar {
+            margin-bottom: 2rem;
+        }
+        .post-list {
+            margin-top: 2rem;
+        }
+        .pagination {
+            margin-top: 2rem;
+        }
+        .login-message {
+            height: 50vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">게시판</a>
+            <div class="ms-auto">
+                <span id="userInfo" class="me-3"></span>
+                <button id="loginBtn" class="btn btn-primary me-2">로그인</button>
+                <button id="logoutBtn" class="btn btn-danger me-2" style="display: none;">로그아웃</button>
+                <button id="writeBtn" class="btn btn-success" style="display: none;">글쓰기</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 로그인 메시지 -->
+    <div id="loginMessage" class="login-message" style="display: none;">
+        로그인 후 이용 가능합니다.
+    </div>
+
+    <!-- 게시글 목록 -->
+    <div id="postContainer" class="container" style="display: none;">
+        <div class="post-list">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>제목</th>
+                        <th>작성자</th>
+                        <th>작성일</th>
+                        <th>권한</th>
+                    </tr>
+                </thead>
+                <tbody id="postList">
+                    <!-- 게시글 목록이 여기에 동적으로 추가됩니다 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <nav aria-label="Page navigation" class="pagination justify-content-center">
+            <ul class="pagination" id="pagination">
+                <!-- 페이지네이션이 여기에 동적으로 추가됩니다 -->
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentPage = 1;
+        const postsPerPage = 10;
+
+        // 로그인 상태 확인
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/auth/status');
+                const data = await response.json();
+                if (data.isLoggedIn) {
+                    document.getElementById('userInfo').textContent = `${data.username}님 환영합니다`;
+                    document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                    document.getElementById('writeBtn').style.display = 'inline-block';
+                    document.getElementById('loginMessage').style.display = 'none';
+                    document.getElementById('postContainer').style.display = 'block';
+                    loadPosts();
+                } else {
+                    document.getElementById('userInfo').textContent = '';
+                    document.getElementById('loginBtn').style.display = 'inline-block';
+                    document.getElementById('logoutBtn').style.display = 'none';
+                    document.getElementById('writeBtn').style.display = 'none';
+                    document.getElementById('loginMessage').style.display = 'flex';
+                    document.getElementById('postContainer').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('로그인 상태 확인 실패:', error);
+            }
+        }
+
+        // 게시글 목록 로드
+        async function loadPosts(page = 1) {
+            try {
+                const response = await fetch(`/api/posts?page=${page}`);
+                const data = await response.json();
+                
+                const postList = document.getElementById('postList');
+                postList.innerHTML = '';
+                
+                data.posts.forEach((post, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${(page - 1) * postsPerPage + index + 1}</td>
+                        <td><a href="/post.html?id=${post.id}">${post.title}</a></td>
+                        <td>${post.author}</td>
+                        <td>${new Date(post.created_at).toLocaleString()}</td>
+                        <td>${post.permission}</td>
+                    `;
+                    postList.appendChild(row);
+                });
+
+                // 페이지네이션 생성
+                const totalPages = Math.ceil(data.total / postsPerPage);
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === page ? 'active' : ''}`;
+                    li.innerHTML = `
+                        <a class="page-link" href="#" onclick="loadPosts(${i})">${i}</a>
+                    `;
+                    pagination.appendChild(li);
+                }
+            } catch (error) {
+                console.error('게시글 목록 로드 실패:', error);
+            }
+        }
+
+        // 이벤트 리스너 등록
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            location.href = '/login.html';
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                location.reload();
+            } catch (error) {
+                console.error('로그아웃 실패:', error);
+            }
+        });
+
+        document.getElementById('writeBtn').addEventListener('click', () => {
+            location.href = '/write.html';
+        });
+
+        // 초기 로드
+        checkLoginStatus();
+    </script>
+</body>
+</html> 
