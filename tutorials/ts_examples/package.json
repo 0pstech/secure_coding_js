@@ -1,0 +1,9 @@
+{
+  "name": "typescript-examples",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "typescript": "^5.0.0",
+    "immutable": "^4.3.0"
+  }
+} 
