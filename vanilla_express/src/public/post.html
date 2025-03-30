@@ -65,7 +65,7 @@
         // 로그인 상태 확인
         async function checkLoginStatus() {
             try {
-                const response = await fetch('/api/auth/status');
+                const response = await fetch('/api/auth/check');
                 const data = await response.json();
                 if (data.isLoggedIn) {
                     document.getElementById('userInfo').textContent = `${data.username}님 환영합니다`;
@@ -95,11 +95,27 @@
             try {
                 const response = await fetch(`/api/posts/${postId}`);
                 currentPost = await response.json();
-                
+                console.log(currentPost.content);
                 document.getElementById('postTitle').textContent = currentPost.title;
                 document.getElementById('postAuthor').textContent = currentPost.author;
                 document.getElementById('postDate').textContent = new Date(currentPost.created_at).toLocaleString();
-                document.getElementById('postContent').innerHTML = currentPost.content;
+                // 게시글 내용을 그대로 표시하고 스크립트 태그 실행 허용
+                const contentElement = document.getElementById('postContent');
+                contentElement.innerHTML = currentPost.content;
+                
+                // 스크립트 태그가 있는 경우 실행되도록 처리
+                const scriptTags = contentElement.getElementsByTagName('script');
+                for (let i = 0; i < scriptTags.length; i++) {
+                    const oldScript = scriptTags[i];
+                    const newScript = document.createElement('script');
+                    newScript.text = oldScript.text;
+                    // 속성 복사
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                }
+                
                 document.getElementById('postPermission').textContent = currentPost.permission;
                 
                 // 로그인 상태 확인 (수정/삭제 버튼 표시를 위해)

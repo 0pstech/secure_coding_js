@@ -6,8 +6,6 @@
     <title>게시글 작성</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- TinyMCE -->
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         .navbar {
             margin-bottom: 2rem;
@@ -15,6 +13,50 @@
         .form-container {
             max-width: 800px;
             margin: 0 auto;
+        }
+        .editor-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .editor-tabs {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+        .editor-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            border-radius: 0.25rem 0.25rem 0 0;
+            margin-right: 0.25rem;
+        }
+        .editor-tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            z-index: 1;
+        }
+        .editor-content {
+            border: 1px solid #dee2e6;
+            border-radius: 0 0.25rem 0.25rem 0.25rem;
+            padding: 0.5rem;
+            min-height: 400px;
+        }
+        #htmlEditor, #textEditor {
+            width: 100%;
+            min-height: 400px;
+            padding: 0.5rem;
+            font-family: monospace;
+            resize: vertical;
+        }
+        #preview {
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 200px;
+            background-color: #fff;
         }
     </style>
 </head>
@@ -41,7 +83,24 @@
             </div>
             <div class="mb-3">
                 <label for="content" class="form-label">내용</label>
-                <textarea id="content" class="form-control"></textarea>
+                <div class="editor-container">
+                    <div class="editor-tabs">
+                        <div class="editor-tab active" id="textTab">텍스트 모드</div>
+                        <div class="editor-tab" id="htmlTab">HTML 모드</div>
+                    </div>
+                    <div class="editor-content">
+                        <textarea id="textEditor" class="form-control"></textarea>
+                        <textarea id="htmlEditor" class="form-control" style="display: none;"></textarea>
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="showPreview">
+                    <label class="form-check-label" for="showPreview">
+                        미리보기 표시
+                    </label>
+                </div>
+                <div id="preview" style="display: none;"></div>
+                <input type="hidden" id="content">
             </div>
             <div class="mb-3">
                 <label for="permission" class="form-label">권한</label>
@@ -60,14 +119,72 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // TinyMCE 초기화
-        tinymce.init({
-            selector: '#content',
-            height: 400,
-            plugins: 'lists link image table code help wordcount',
-            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code',
-            language: 'ko_KR'
-        });
+        // 에디터 관련 변수
+        const textEditor = document.getElementById('textEditor');
+        const htmlEditor = document.getElementById('htmlEditor');
+        const textTab = document.getElementById('textTab');
+        const htmlTab = document.getElementById('htmlTab');
+        const showPreview = document.getElementById('showPreview');
+        const preview = document.getElementById('preview');
+        const contentInput = document.getElementById('content');
+        
+        // 현재 활성화된 에디터 (text 또는 html)
+        let activeEditor = 'text';
+
+        // 탭 전환 함수
+        function switchTab(mode) {
+            if (mode === 'text') {
+                textTab.classList.add('active');
+                htmlTab.classList.remove('active');
+                textEditor.style.display = 'block';
+                htmlEditor.style.display = 'none';
+                
+                // HTML에서 텍스트로 전환 시 HTML 태그 제거
+                if (activeEditor === 'html') {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = htmlEditor.value;
+                    textEditor.value = tempDiv.textContent || tempDiv.innerText;
+                }
+                
+                activeEditor = 'text';
+            } else {
+                textTab.classList.remove('active');
+                htmlTab.classList.add('active');
+                textEditor.style.display = 'none';
+                htmlEditor.style.display = 'block';
+                
+                // 텍스트에서 HTML로 전환 시 기본 p 태그로 감싸기
+                if (activeEditor === 'text') {
+                    const lines = textEditor.value.split('\n').filter(line => line.trim() !== '');
+                    htmlEditor.value = lines.map(line => `<p>${line}</p>`).join('\n');
+                }
+                
+                activeEditor = 'html';
+            }
+            
+            updatePreview();
+        }
+
+        // 미리보기 업데이트
+        function updatePreview() {
+            if (showPreview.checked) {
+                preview.style.display = 'block';
+                preview.innerHTML = activeEditor === 'text' 
+                    ? textEditor.value.replace(/\n/g, '<br>') 
+                    : htmlEditor.value;
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // 이벤트 리스너 등록
+        textTab.addEventListener('click', () => switchTab('text'));
+        htmlTab.addEventListener('click', () => switchTab('html'));
+        
+        textEditor.addEventListener('input', updatePreview);
+        htmlEditor.addEventListener('input', updatePreview);
+        
+        showPreview.addEventListener('change', updatePreview);
 
         // URL에서 게시글 ID 가져오기 (수정 모드 확인용)
         const urlParams = new URLSearchParams(window.location.search);
@@ -76,7 +193,7 @@
         // 로그인 상태 확인
         async function checkLoginStatus() {
             try {
-                const response = await fetch('/api/auth/status');
+                const response = await fetch('/api/auth/check');
                 const data = await response.json();
                 if (data.isLoggedIn) {
                     document.getElementById('userInfo').textContent = `${data.username}님 환영합니다`;
@@ -102,8 +219,19 @@
                     const post = await response.json();
                     
                     document.getElementById('title').value = post.title;
-                    tinymce.get('content').setContent(post.content);
+                    
+                    // HTML 내용 로드
+                    htmlEditor.value = post.content;
+                    
+                    // 텍스트 내용 변환
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = post.content;
+                    textEditor.value = tempDiv.textContent || tempDiv.innerText;
+                    
                     document.getElementById('permission').value = post.permission;
+                    
+                    // 미리보기 업데이트
+                    updatePreview();
                 } catch (error) {
                     console.error('게시글 로드 실패:', error);
                 }
@@ -128,7 +256,10 @@
             e.preventDefault();
             
             const title = document.getElementById('title').value;
-            const content = tinymce.get('content').getContent();
+            // 현재 활성화된 에디터에 따라 내용 가져오기
+            const content = activeEditor === 'text' 
+                ? textEditor.value.replace(/\n/g, '<br>') 
+                : htmlEditor.value;
             const permission = document.getElementById('permission').value;
 
             try {

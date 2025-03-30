@@ -1,193 +1,64 @@
-// 1. 암묵적 타입 변환으로 인한 문제
-function secureImplicitTypeConversion(a, b) {
-    if (typeof a !== 'number' || typeof b !== 'number') {
-        throw new TypeError('두 매개변수 모두 숫자여야 합니다');
-    }
-    return a + b;
-}
-  
-// 2. 암시적 타입 변환 오용으로 인한 문제
-function secureAuthentication(storedToken, userToken) {
-    // 타입과 값 모두 비교하는 엄격한 동등 연산자(===) 사용
-    if (typeof storedToken !== 'string' || typeof userToken !== 'string') {
-        throw new TypeError('토큰은 문자열이어야 합니다');
-    }
-    
-    // 타이밍 공격 방지를 위한 상수 시간 비교
-    if (storedToken.length !== userToken.length) {
-        return false;
-    }
-    
-    // 엄격한 동등 연산자로 비교
-    if (storedToken === userToken) {
-        return true; // 인증 성공
-    }
-    return false;
-}
+// 민감한 데이터를 다루는 보안 강화 클래스
+class UserAccount {
+  // private 필드 선언 (# 기호로 시작하는 필드는 클래스 외부에서 접근 불가)
+  #username;
+  #password;
+  #passwordHash;
 
-// 3. 배열 타입 검증 부족으로 인한 문제
-function secureArrayOperation(data) {
-    // 배열 타입 검증 추가
-    if (!Array.isArray(data)) {
-        throw new TypeError('데이터는 배열이어야 합니다');
-    }
-    
-    // 배열 요소 타입 검증
-    if (!data.every(item => typeof item === 'number')) {
-        throw new TypeError('모든 배열 요소는 숫자여야 합니다');
-    }
-    
-    return data.filter(item => item > 10);
+  constructor(username, password) {
+    this.#username = username;
+    // 비밀번호를 평문으로 저장하지 않고 해시 처리
+    this.#passwordHash = this.#hashPassword(password);
+  }
+
+  // 비밀번호 해싱 메서드 (실제로는 더 강력한 알고리즘 사용 권장)
+  #hashPassword(password) {
+    // 간단한 해시 구현 (실제로는 bcrypt 등의 라이브러리 사용 권장)
+    return `hashed_${password}_${Date.now()}`;
+  }
+
+  // 메서드를 private으로 만들어 프로토타입 오염 방지
+  #validatePasswordInternal(input) {
+    // 해시된 값으로 비교
+    return this.#passwordHash === this.#hashPassword(input);
+  }
+
+  // 공개 API는 최소한으로 제공
+  validatePassword(input) {
+    return this.#validatePasswordInternal(input);
+  }
+
+  // 사용자 이름만 안전하게 반환하는 getter
+  get username() {
+    return this.#username;
+  }
 }
 
-// 4. 객체 속성 검증 부족으로 인한 문제
-function secureUserDataProcessing(user) {
-    // 객체 타입 검증 추가
-    if (!user || typeof user !== 'object') {
-        throw new TypeError('사용자 데이터는 객체여야 합니다');
-    }
-    
-    // 필수 속성 존재 여부 확인
-    if (!('name' in user)) {
-        throw new TypeError('사용자 이름은 필수입니다');
-    }
-    
-    // isAdmin 속성이 명시적 boolean 타입인지 확인
-    if (typeof user.isAdmin !== 'boolean') {
-        throw new TypeError('isAdmin은 boolean 타입이어야 합니다');
-    }
-    
-    // preferences 객체 확인 및 기본값 설정
-    if (!user.preferences || typeof user.preferences !== 'object') {
-        throw new TypeError('preferences 객체는 필수입니다');
-    }
-    
-    if (!('theme' in user.preferences)) {
-        throw new TypeError('theme 속성은 필수입니다');
-    }
-    
-    // 안전하게 구조 분해 할당
-    const userName = user.name;
-    const theme = user.preferences.theme;
+// Object.freeze로 프로토타입 변경 방지
+Object.freeze(UserAccount.prototype);
 
-    if (user.isAdmin === true) {
-        console.log(`관리자 ${userName}님이 로그인했습니다. 테마: ${theme}`);
-        return true;
-    } else {
-        console.log(`일반 사용자 ${userName}님이 로그인했습니다. 테마: ${theme}`);
-        return false;
-    }
-}
+// 클래스 인스턴스 생성
+const user = new UserAccount("admin", "1234");
 
-// 5. 문자열 타입 검증 부족으로 인한 문제
-function secureCreateFilePath(directory, filename) {
-    // 디렉토리와 파일명이 모두 문자열인지 확인
-    if (typeof directory !== 'string' || typeof filename !== 'string') {
-        throw new TypeError('디렉토리와 파일명은 문자열이어야 합니다');
-    }
-    
-    // 빈 문자열 처리
-    if (!directory || !filename) {
-        throw new Error('디렉토리와 파일명은 비어있을 수 없습니다');
-    }
-    
-    // 경로 조작 방지
-    if (directory.includes('..') || filename.includes('..')) {
-        throw new Error('경로 조작은 허용되지 않습니다');
-    }
-    
-    // 템플릿 리터럴 사용으로 안전한 문자열 연결
-    return `${directory}/${filename}`;
-}
+// 개선점 1: 객체의 프로퍼티에 직접 접근 불가능
+// console.log("비밀번호 접근 시도:", user.#password); // 에러 발생 (주석 처리 필요)
+console.log("사용자 이름만 접근 가능:", user.username);
 
-// 6. null, undefined 처리 부족으로 인한 문제
-function secureNullUndefinedHandling(data) {
-    // 데이터가 객체인지 확인
-    if (!data || typeof data !== 'object') {
-        throw new TypeError('데이터는 객체여야 합니다');
-    }
+// 개선점 2: 프로토타입 체인을 통한 메서드 변조 시도
+Object.prototype.validatePassword = function() {
+  console.log("악성 코드 실행 시도");
+  return true;
+};
 
-    // value 속성이 존재하는지 확인
-    if (!('value' in data)) {
-        throw new Error('데이터 객체는 value 속성을 가져야 합니다');
-    }
-    
-    // value 속성의 타입 검증
-    if (data.value === null || data.value === undefined) {
-        throw new Error('value 속성은 null이나 undefined일 수 없습니다');
-    }
-    
-    return data.value;
-}
+// 변조 시도 실패 - 원래 메서드가 실행됨
+console.log("인증 결과 (잘못된 비밀번호):", user.validatePassword("wrong_password")); // false 반환
+console.log("인증 결과 (올바른 비밀번호):", user.validatePassword("1234")); // true 반환
 
-// 테스트 케이스
-// console.log('--------------------------------');
-// console.log('1. 암묵적 타입 변환으로 인한 문제');
-// try {
-//     console.log(secureImplicitTypeConversion(1, 2)); // 3 - 정상 케이스
-//     console.log(secureImplicitTypeConversion('1', 2)); // TypeError
-// } catch (error) {
-//     console.error('타입 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
+// 추가 보안 조치: 객체 자체도 변경 불가능하게 설정
+Object.freeze(user);
 
-// console.log('--------------------------------');
-// console.log('2. 암시적 타입 변환 오용으로 인한 문제');
-// try {
-//     console.log(secureAuthentication('token1', 'token1')); // true - 정상 케이스
-//     console.log(secureAuthentication(null, undefined)); // 타입 검증 없음 - 오류 발생 가능
-// } catch (error) {
-//     console.error('인증 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
-
-// console.log('--------------------------------');
-// console.log('3. 배열 타입 검증 부족으로 인한 문제');
-// try {
-//     console.log(secureArrayOperation([1, 10, 20])); // 정상 케이스
-//     // console.log(secureArrayOperation(1, 2)); // TypeError
-//     console.log(secureArrayOperation(['1', 10, 20])); // TypeError
-// } catch (error) {
-//     console.error('배열 처리 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
-
-// console.log('--------------------------------');
-// console.log('4. 객체 속성 검증 부족으로 인한 문제');
-// try {
-//     console.log(secureUserDataProcessing({
-//         name: '홍길동',
-//         isAdmin: true,
-//         preferences: { theme: 'dark' }
-//     })); // true - 정상 케이스
-//     console.log(secureUserDataProcessing({
-//         name: '홍길동',
-//         isAdmin: null,
-//         preferences: { theme: 'dark' }
-//     })); // TypeError
-// } catch (error) {
-//     console.error('객체 처리 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
-
-// console.log('--------------------------------');
-// console.log('5. 문자열 타입 검증 부족으로 인한 문제');
-// try {
-//     console.log(secureCreateFilePath('user', 'profile.jpg')); // 정상 케이스
-//     // console.log(secureCreateFilePath('user', null)); // TypeError
-//     console.log(secureCreateFilePath('user', '../profile.jpg')); // Error
-// } catch (error) {
-//     console.error('파일 경로 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
-
-// console.log('--------------------------------');
-// console.log('6. null, undefined 처리 부족으로 인한 문제');
-// try {
-//     console.log(secureNullUndefinedHandling({ value: 'test' })); // 정상 케이스
-//     // console.log(secureNullUndefinedHandling(null)); // TypeError
-//     console.log(secureNullUndefinedHandling({})); // Error
-// } catch (error) {
-//     console.error('null/undefined 처리 오류 발생:', error.message);
-// }
-// console.log('--------------------------------'); 
+// 보안 강화 요약:
+// 1. private 필드(#)를 사용하여 직접 접근 차단
+// 2. 비밀번호는 해시 처리하여 저장
+// 3. Object.freeze()로 프로토타입 및 객체 변경 방지
+// 4. 최소한의 공개 API만 제공
