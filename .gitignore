@@ -34,3 +34,20 @@ temp/
 # 백업 파일
 *.bak
 *.backup
+
+# React 관련 파일
+.cache/
+coverage/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.eslintcache
+react-app-env.d.ts
+
+# NestJS 관련 파일
+.nest/
+dist/
+coverage/
+.nyc_output/
+ormconfig.json
