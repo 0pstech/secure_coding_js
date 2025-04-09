@@ -1,193 +1,190 @@
-// 1. 암묵적 타입 변환으로 인한 문제
+// 1. Implicit Type Conversion Issues
 function secureImplicitTypeConversion(a, b) {
     if (typeof a !== 'number' || typeof b !== 'number') {
-        throw new TypeError('두 매개변수 모두 숫자여야 합니다');
+        throw new TypeError('Both parameters must be numbers');
     }
     return a + b;
 }
   
-// 2. 암시적 타입 변환 오용으로 인한 문제
+// 2. Authentication Vulnerability with Loose Equality
 function secureAuthentication(storedToken, userToken) {
-    // 타입과 값 모두 비교하는 엄격한 동등 연산자(===) 사용
+    // Using strict equality (===) to compare both type and value
     if (typeof storedToken !== 'string' || typeof userToken !== 'string') {
-        throw new TypeError('토큰은 문자열이어야 합니다');
+        throw new TypeError('Tokens must be strings');
     }
     
-    // 문자열 길이가 다르면 즉시 인증 실패 처리
+    // Return false immediately if lengths don't match
     if (storedToken.length !== userToken.length) {
         return false;
     }
     
-    // 엄격한 동등 연산자로 비교
+    // Compare using strict equality operator
     if (storedToken === userToken) {
-        return true; // 인증 성공
+        return true; // Authentication successful
     }
     return false;
 }
 
-// 3. 배열 타입 검증 부족으로 인한 문제
+// 3. Array Operation Vulnerability
 function secureArrayOperation(data) {
-    // 배열 타입 검증 추가
+    // Validate array type
     if (!Array.isArray(data)) {
-        throw new TypeError('데이터는 배열이어야 합니다');
+        throw new TypeError('Data must be an array');
     }
     
-    // 배열 요소 타입 검증
+    // Validate array element types
     if (!data.every(item => typeof item === 'number')) {
-        throw new TypeError('모든 배열 요소는 숫자여야 합니다');
+        throw new TypeError('All array elements must be numbers');
     }
     
     return data.filter(item => item > 10);
 }
 
-// 4. 객체 속성 검증 부족으로 인한 문제
+// 4. Object Property Access Vulnerability
 function secureUserDataProcessing(user) {
-    // 객체 타입 검증 추가
+    // Validate object type
     if (!user || typeof user !== 'object') {
-        throw new TypeError('사용자 데이터는 객체여야 합니다');
+        throw new TypeError('User data must be an object');
     }
     
-    // 필수 속성 존재 여부 확인
+    // Check for required properties
     if (!('name' in user)) {
-        throw new TypeError('사용자 이름은 필수입니다');
+        throw new TypeError('User name is required');
     }
     
-    // isAdmin 속성이 명시적 boolean 타입인지 확인
+    // Validate isAdmin is explicitly boolean
     if (typeof user.isAdmin !== 'boolean') {
-        throw new TypeError('isAdmin은 boolean 타입이어야 합니다');
+        throw new TypeError('isAdmin must be a boolean');
     }
     
-    // preferences 객체 확인 및 기본값 설정
+    // Validate preferences object and set defaults
     if (!user.preferences || typeof user.preferences !== 'object') {
-        throw new TypeError('preferences 객체는 필수입니다');
+        throw new TypeError('Preferences object is required');
     }
     
     if (!('theme' in user.preferences)) {
-        throw new TypeError('theme 속성은 필수입니다');
+        throw new TypeError('Theme property is required');
     }
     
-    // 안전하게 구조 분해 할당
+    // Safe destructuring
     const userName = user.name;
     const theme = user.preferences.theme;
 
     if (user.isAdmin === true) {
-        console.log(`관리자 ${userName}님이 로그인했습니다. 테마: ${theme}`);
+        console.log(`Admin ${userName} has logged in. Theme: ${theme}`);
         return true;
     } else {
-        console.log(`일반 사용자 ${userName}님이 로그인했습니다. 테마: ${theme}`);
+        console.log(`Regular user ${userName} has logged in. Theme: ${theme}`);
         return false;
     }
 }
 
-// 5. 문자열 타입 검증 부족으로 인한 문제
+// 5. String Validation Vulnerability
 function secureCreateFilePath(directory, filename) {
-    // 디렉토리와 파일명이 모두 문자열인지 확인
+    // Validate both directory and filename are strings
     if (typeof directory !== 'string' || typeof filename !== 'string') {
-        throw new TypeError('디렉토리와 파일명은 문자열이어야 합니다');
+        throw new TypeError('Directory and filename must be strings');
     }
     
-    // 빈 문자열 처리
+    // Handle empty strings
     if (!directory || !filename) {
-        throw new Error('디렉토리와 파일명은 비어있을 수 없습니다');
+        throw new Error('Directory and filename cannot be empty');
     }
     
-    // 경로 조작 방지
+    // Prevent path traversal
     if (directory.includes('..') || filename.includes('..')) {
-        throw new Error('경로 조작은 허용되지 않습니다');
+        throw new Error('Path traversal is not allowed');
     }
     
-    // 템플릿 리터럴 사용으로 안전한 문자열 연결
+    // Use template literals for safe string concatenation
     return `${directory}/${filename}`;
 }
 
-// 6. null, undefined 처리 부족으로 인한 문제
+// 6. Null/Undefined Handling Vulnerability
 function secureNullUndefinedHandling(data) {
-    // 데이터가 객체인지 확인
+    // Validate data is an object
     if (!data || typeof data !== 'object') {
-        throw new TypeError('데이터는 객체여야 합니다');
+        throw new TypeError('Data must be an object');
     }
 
-    // value 속성이 존재하는지 확인
+    // Check if value property exists
     if (!('value' in data)) {
-        throw new Error('데이터 객체는 value 속성을 가져야 합니다');
+        throw new Error('Data object must have a value property');
     }
     
-    // value 속성의 타입 검증
+    // Validate value property type
     if (data.value === null || data.value === undefined) {
-        throw new Error('value 속성은 null이나 undefined일 수 없습니다');
+        throw new Error('Value property cannot be null or undefined');
     }
     
     return data.value;
 }
 
-// 테스트 케이스
-// console.log('--------------------------------');
-// console.log('1. 암묵적 타입 변환으로 인한 문제');
-// try {
-//     console.log(secureImplicitTypeConversion(1, 2)); // 3 - 정상 케이스
-//     console.log(secureImplicitTypeConversion('1', 2)); // TypeError
-// } catch (error) {
-//     console.error('타입 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
+// Test cases
+console.log('--------------------------------');
+console.log('1. Implicit Type Conversion');
+try {
+    console.log(secureImplicitTypeConversion(1, 2)); // 3 - Valid case
+    console.log(secureImplicitTypeConversion('1', 2)); // TypeError
+} catch (error) {
+    console.error('Type error occurred:', error.message);
+}
+console.log('--------------------------------');
 
-// console.log('--------------------------------');
-// console.log('2. 암시적 타입 변환 오용으로 인한 문제');
-// try {
-//     console.log(secureAuthentication('token1', 'token1')); // true - 정상 케이스
-//     console.log(secureAuthentication(null, undefined)); // 타입 검증 없음 - 오류 발생 가능
-// } catch (error) {
-//     console.error('인증 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
+console.log('--------------------------------');
+console.log('2. Authentication Vulnerability');
+try {
+    console.log(secureAuthentication('token1', 'token1')); // true - Valid case
+    console.log(secureAuthentication(null, undefined)); // TypeError
+} catch (error) {
+    console.error('Authentication error occurred:', error.message);
+}
+console.log('--------------------------------');
 
-// console.log('--------------------------------');
-// console.log('3. 배열 타입 검증 부족으로 인한 문제');
-// try {
-//     console.log(secureArrayOperation([1, 10, 20])); // 정상 케이스
-//     // console.log(secureArrayOperation(1, 2)); // TypeError
-//     console.log(secureArrayOperation(['1', 10, 20])); // TypeError
-// } catch (error) {
-//     console.error('배열 처리 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
+console.log('--------------------------------');
+console.log('3. Array Operation Vulnerability');
+try {
+    console.log(secureArrayOperation([1, 10, 20])); // Valid case
+    console.log(secureArrayOperation(['1', 10, 20])); // TypeError
+} catch (error) {
+    console.error('Array processing error occurred:', error.message);
+}
+console.log('--------------------------------');
 
-// console.log('--------------------------------');
-// console.log('4. 객체 속성 검증 부족으로 인한 문제');
-// try {
-//     console.log(secureUserDataProcessing({
-//         name: '홍길동',
-//         isAdmin: true,
-//         preferences: { theme: 'dark' }
-//     })); // true - 정상 케이스
-//     console.log(secureUserDataProcessing({
-//         name: '홍길동',
-//         isAdmin: null,
-//         preferences: { theme: 'dark' }
-//     })); // TypeError
-// } catch (error) {
-//     console.error('객체 처리 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
+console.log('--------------------------------');
+console.log('4. Object Property Access Vulnerability');
+try {
+    console.log(secureUserDataProcessing({
+        name: 'John',
+        isAdmin: true,
+        preferences: { theme: 'dark' }
+    })); // true - Valid case
+    console.log(secureUserDataProcessing({
+        name: 'John',
+        isAdmin: null,
+        preferences: { theme: 'dark' }
+    })); // TypeError
+} catch (error) {
+    console.error('Object processing error occurred:', error.message);
+}
+console.log('--------------------------------');
 
-// console.log('--------------------------------');
-// console.log('5. 문자열 타입 검증 부족으로 인한 문제');
-// try {
-//     console.log(secureCreateFilePath('user', 'profile.jpg')); // 정상 케이스
-//     // console.log(secureCreateFilePath('user', null)); // TypeError
-//     console.log(secureCreateFilePath('user', '../profile.jpg')); // Error
-// } catch (error) {
-//     console.error('파일 경로 오류 발생:', error.message);
-// }
-// console.log('--------------------------------');
+console.log('--------------------------------');
+console.log('5. String Validation Vulnerability');
+try {
+    console.log(secureCreateFilePath('user', 'profile.jpg')); // Valid case
+    console.log(secureCreateFilePath('user', '../profile.jpg')); // Error
+} catch (error) {
+    console.error('File path error occurred:', error.message);
+}
+console.log('--------------------------------');
 
-// console.log('--------------------------------');
-// console.log('6. null, undefined 처리 부족으로 인한 문제');
-// try {
-//     console.log(secureNullUndefinedHandling({ value: 'test' })); // 정상 케이스
-//     // console.log(secureNullUndefinedHandling(null)); // TypeError
-//     console.log(secureNullUndefinedHandling({})); // Error
-// } catch (error) {
-//     console.error('null/undefined 처리 오류 발생:', error.message);
-// }
-// console.log('--------------------------------'); 
+console.log('--------------------------------');
+console.log('6. Null/Undefined Handling Vulnerability');
+try {
+    console.log(secureNullUndefinedHandling({ value: 'test' })); // Valid case
+    console.log(secureNullUndefinedHandling({})); // Error
+} catch (error) {
+    console.error('Null/undefined handling error occurred:', error.message);
+}
+console.log('--------------------------------'); 

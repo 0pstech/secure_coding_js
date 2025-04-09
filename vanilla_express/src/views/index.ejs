@@ -1,0 +1,186 @@
+<%- include('partials/header') %>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    .wrapper {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .content {
+        flex: 1;
+    }
+    footer {
+        margin-top: auto;
+    }
+</style>
+
+<div class="wrapper">
+    <div class="content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h1 class="mb-0">Recent Posts</h1>
+                        <button id="writeBtn" class="btn btn-primary" style="display: none;" onclick="window.location.href='/posts/new'">Write Post</button>
+                    </div>
+                    <div id="posts-container">
+                        <% if (typeof posts !== 'undefined') { %>
+                            <% posts.forEach(post => { %>
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h2 class="card-title h5">
+                                            <a href="/posts/<%= post.id %>" class="text-decoration-none"><%= post.title %></a>
+                                        </h2>
+                                        <p class="card-text text-muted">
+                                            Posted by <%= post.author_name %> on <%= new Date(post.created_at).toLocaleDateString() %>
+                                        </p>
+                                        <p class="card-text"><%= post.content.substring(0, 200) %>...</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a href="/posts/<%= post.id %>" class="btn btn-outline-primary btn-sm">Read More</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div id="login-message" class="alert alert-info" style="display: none;">
+                                <p>Please log in to view posts. <a href="/auth/login" class="alert-link">Login here</a> to see the content.</p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Welcome!</h5>
+                            <p class="card-text" id="userInfo"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include('partials/footer') %>
+</div>
+
+<script>
+// Check login status periodically
+async function checkLoginStatus() {
+    try {
+        const response = await fetch('/auth/check', {
+            credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (data.isLoggedIn) {
+            document.getElementById('userInfo').textContent = `Hello, ${data.user.username}!`;
+            document.getElementById('writeBtn').style.display = 'inline-block';
+            loadPosts();
+        } else {
+            document.getElementById('userInfo').textContent = 'Please login to write posts.';
+            document.getElementById('writeBtn').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error checking login status:', error);
+    }
+}
+
+// Check login status every 5 minutes
+setInterval(checkLoginStatus, 5 * 60 * 1000);
+
+// Initial check
+checkLoginStatus();
+
+// Load posts
+async function loadPosts(category = 'all') {
+    try {
+        const response = await fetch('/posts', {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        const posts = await response.json();
+        console.log(posts);
+
+        const container = document.getElementById('posts-container');
+        container.innerHTML = posts.map(post => `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="card-title h5">
+                        <a href="/posts/${post.id}" class="text-decoration-none">${post.title}</a>
+                    </h2>
+                    <p class="card-text text-muted">
+                        Posted by ${post.author_name} on ${new Date(post.created_at).toLocaleDateString()}
+                    </p>
+                    <p class="card-text">${post.content.substring(0, 200)}...</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="/posts/${post.id}" class="btn btn-outline-primary btn-sm">Read More</a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading posts:', error);
+        let errorMessage = 'Error loading posts. Please try again later.';
+        let errorDetails = '';
+        
+        if (!error.response) {
+            errorMessage = 'Network error. Please check your internet connection.';
+            errorDetails = 'Unable to connect to the server.';
+        } else {
+            const status = error.response.status;
+            switch (status) {
+                case 401:
+                    errorMessage = 'Please login to view posts.';
+                    errorDetails = 'Your session may have expired.';
+                    break;
+                case 403:
+                    errorMessage = 'Access denied.';
+                    errorDetails = 'You do not have permission to view posts.';
+                    break;
+                case 404:
+                    errorMessage = 'Posts not found.';
+                    errorDetails = 'The requested posts could not be found.';
+                    break;
+                case 500:
+                    errorMessage = 'Server error.';
+                    errorDetails = 'The server encountered an unexpected error.';
+                    break;
+                default:
+                    errorDetails = 'An unexpected error occurred.';
+            }
+        }
+        
+        document.getElementById('posts-container').innerHTML = `
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">${errorMessage}</h5>
+                <p>${errorDetails}</p>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="mb-0">If the problem persists, please contact support.</p>
+                    <button class="btn btn-outline-danger btn-sm" onclick="loadPosts()">Try Again</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Category filter
+document.querySelectorAll('[data-category]').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const category = this.dataset.category;
+        loadPosts(category);
+        
+        // Update active state
+        document.querySelectorAll('[data-category]').forEach(el => {
+            el.classList.remove('active');
+        });
+        this.classList.add('active');
+    });
+});
+</script> 

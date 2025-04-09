@@ -1,7 +1,8 @@
-// 1. this 바인딩
+// 1. this binding
 const scObject = {
   value: 100,
   delayedLog: function() {
+    // Arrow function callback: this refers to the myObject (references parent scope)
     setTimeout(() => {
     //   console.log(this);
       console.log(this.value); // 100
@@ -9,27 +10,43 @@ const scObject = {
   }
 };
 
-// 2. 함수 내 return 
-function ret(a, b) {
-    return a + b;
+// 2. Safe async closure handling
+function createSafeCounter() {
+  let count = 0;
+  let queue = Promise.resolve();
+
+  return {
+    increment: function() {
+      queue = queue.then(() => {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            count++;
+            resolve();
+          }, Math.random() * 200);
+        });
+      });
+    },
+    getCount: function() {
+      return queue.then(() => count);
+    }
+  };
 }
 
-
-// 3. 생성자 함수를 new 없이 호출
-function Person(name) {
-    this.name = name;
-}  
-
-// 실행
+// Execution
 console.log('--------------------------------');
-console.log('1. this 바인딩');
+console.log('1. this binding');
 scObject.delayedLog();
 
 console.log('--------------------------------');
-console.log('2. 함수 내 return 누락');
-ret(1, 2);
+console.log('2. Closure variable update');
+const counter = createSafeCounter();
 
-console.log('--------------------------------');
-console.log('3. 생성자 함수를 new 없이 호출');
-const alice = new Person('John');
-console.log('name: ', global.name); // 'John'
+for (let i = 0; i < 10; i++) {
+  counter.increment(); // Call 10 times
+}
+
+setTimeout(() => {
+  counter.getCount().then(count => {
+    console.log('Final count:', count); // ✅ Now it can be 10
+  });
+}, 200); // Long enough compared to 100ms (considering random delay)

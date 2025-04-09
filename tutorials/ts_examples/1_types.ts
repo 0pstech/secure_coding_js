@@ -1,32 +1,32 @@
-// 1. 타입스크립트를 사용한 타입 안전성 확보
+// 1. Type Safety with TypeScript
 function tsImplicitTypeConversion(a: number, b: number): number {
-    // 타입스크립트에서는 매개변수 타입이 이미 검증되므로 런타임 검사 불필요
+    // TypeScript already validates parameter types, so no runtime type check needed
     return a + b;
 }
   
-// 2. 타입스크립트를 사용한 문자열 비교 안전성
+// 2. String Comparison Safety with TypeScript
 function tsAuthentication(storedToken: string, userToken: string): boolean {
-    // 타입스크립트에서는 매개변수 타입이 이미 검증되므로 런타임 타입 검사 불필요
+    // TypeScript already validates parameter types, so no runtime type check needed
     
-    // 문자열 길이가 다르면 즉시 인증 실패 처리
+    // Return false immediately if string lengths differ
     if (storedToken.length !== userToken.length) {
         return false;
     }
     
-    // 엄격한 동등 연산자로 비교
+    // Use strict equality operator for comparison
     if (storedToken === userToken) {
-        return true; // 인증 성공
+        return true; // Authentication successful
     }
     return false;
 }
 
-// 3. 타입스크립트를 사용한 배열 타입 안전성
+// 3. Array Type Safety with TypeScript
 function tsArrayOperation(data: number[]): number[] {
-    // 타입스크립트에서는 배열 타입과 요소 타입이 이미 검증되므로 런타임 검사 불필요
+    // TypeScript already validates array type and element types, so no runtime check needed
     return data.filter(item => item > 10);
 }
 
-// 4. 타입스크립트를 사용한 객체 타입 안전성
+// 4. Object Type Safety with TypeScript
 interface UserPreferences {
     theme: string;
 }
@@ -38,139 +38,120 @@ interface User {
 }
 
 function tsUserDataProcessing(user: User): boolean {
-    // 타입스크립트에서는 객체 구조와 타입이 이미 검증되므로 대부분의 런타임 검사 불필요
+    // TypeScript already validates object structure and types, so most runtime checks are unnecessary
     
-    // 안전하게 구조 분해 할당
+    // Safe destructuring assignment
     const { name: userName, preferences: { theme } } = user;
 
     if (user.isAdmin) {
-        console.log(`관리자 ${userName}님이 로그인했습니다. 테마: ${theme}`);
+        console.log(`Admin ${userName} has logged in. Theme: ${theme}`);
         return true;
     } else {
-        console.log(`일반 사용자 ${userName}님이 로그인했습니다. 테마: ${theme}`);
+        console.log(`Regular user ${userName} has logged in. Theme: ${theme}`);
         return false;
     }
 }
 
-// 5. 타입스크립트를 사용한 문자열 타입 안전성
+// 5. String Type Safety with TypeScript
 function tsCreateFilePath(directory: string, filename: string): string {
-    // 타입스크립트에서는 매개변수 타입이 이미 검증되므로 런타임 타입 검사 불필요
+    // TypeScript already validates parameter types, so no runtime type check needed
     
-    // 빈 문자열 처리
+    // Handle empty strings
     if (!directory || !filename) {
-        throw new Error('디렉토리와 파일명은 비어있을 수 없습니다');
+        throw new Error('Directory and filename cannot be empty');
     }
     
-    // 경로 조작 방지
+    // Prevent path traversal
     if (directory.includes('..') || filename.includes('..')) {
-        throw new Error('경로 조작은 허용되지 않습니다');
+        throw new Error('Path traversal is not allowed');
     }
     
-    // 템플릿 리터럴 사용으로 안전한 문자열 연결
+    // Use template literals for safe string concatenation
     return `${directory}/${filename}`;
 }
 
-// 6. 타입스크립트를 사용한 null, undefined 처리
+// 6. Null and Undefined Handling with TypeScript
 interface DataWithValue {
-    value: string | number; // null과 undefined는 허용하지 않음
+    value: string | number; // null and undefined are not allowed
 }
 
 function tsNullUndefinedHandling(data: DataWithValue): string | number {
-    // 타입스크립트에서는 객체 구조와 타입이 이미 검증되므로 대부분의 런타임 검사 불필요
+    // TypeScript already validates object structure and types, so most runtime checks are unnecessary
     return data.value;
 }
 
-// 테스트 케이스
+// Test cases
+console.log('--------------------------------');
+console.log('1. TypeScript Type Safety');
+try {
+    console.log(tsImplicitTypeConversion(1, 2)); // 3 - Normal case
+    // TypeScript will show compile error: console.log(tsImplicitTypeConversion('1', 2));
+} catch (error) {
+    if (error instanceof Error) {
+        console.error('Type error occurred:', error.message);
+    } else {
+        console.error('Unknown type error occurred:', error);
+    }
+}
+console.log('--------------------------------');
+
 // console.log('--------------------------------');
-// console.log('1. 타입스크립트 타입 안전성');
+// console.log('2. TypeScript String Comparison Safety');
 // try {
-//     console.log(tsImplicitTypeConversion(1, 2)); // 3 - 정상 케이스
-//     // console.log(tsImplicitTypeConversion('1', 2));
+//     console.log(tsAuthentication('token1', 'token1')); // true - Normal case
+//     // TypeScript will show compile error: console.log(tsAuthentication(null, undefined));
 // } catch (error) {
-//     if (error instanceof Error) {
-//         console.error('타입 오류 발생:', error.message);
-//     } else {
-//         console.error('알 수 없는 타입 오류 발생:', error);
-//     }
+//     console.error('Authentication error occurred:', error.message);
 // }
 // console.log('--------------------------------');
 
 // console.log('--------------------------------');
-// console.log('2. 타입스크립트 문자열 비교 안전성');
+// console.log('3. TypeScript Array Type Safety');
 // try {
-//     console.log(tsAuthentication('token1', 'token1')); // true - 정상 케이스
-//     // console.log(tsAuthentication(null, undefined));
-// } catch (error: unknown) {
-//     if (error instanceof Error) {
-//         console.error('인증 오류 발생:', error.message);
-//     } else {
-//         console.error('알 수 없는 인증 오류 발생');
-//     }
+//     console.log(tsArrayOperation([1, 10, 20])); // Normal case
+//     // TypeScript will show compile error: console.log(tsArrayOperation(['1', 10, 20]));
+// } catch (error) {
+//     console.error('Array processing error occurred:', error.message);
 // }
 // console.log('--------------------------------');
 
 // console.log('--------------------------------');
-// console.log('3. 타입스크립트 배열 타입 안전성');
-// try {
-//     console.log(tsArrayOperation([1, 10, 20])); // 정상 케이스
-//     // console.log(tsArrayOperation(['1', 10, 20]));
-// } catch (error: unknown) {
-//     if (error instanceof Error) {
-//         console.error('배열 처리 오류 발생:', error.message);
-//     } else {
-//         console.error('배열 처리 오류 발생:', '알 수 없는 오류');
-//     }
-// }
-// console.log('--------------------------------');
-
-// console.log('--------------------------------');
-// console.log('4. 타입스크립트 객체 타입 안전성');
+// console.log('4. TypeScript Object Type Safety');
 // try {
 //     console.log(tsUserDataProcessing({
-//         name: '홍길동',
+//         name: 'John',
 //         isAdmin: true,
 //         preferences: { theme: 'dark' }
-//     })); // true - 정상 케이스
+//     })); // true - Normal case
+//     // TypeScript will show compile error
 //     // console.log(tsUserDataProcessing({
-//     //     name: '홍길동',
+//     //     name: 'John',
 //     //     isAdmin: null,
 //     //     preferences: { theme: 'dark' }
 //     // }));
-// } catch (error: unknown) {
-//     if (error instanceof Error) {
-//         console.error('객체 처리 오류 발생:', error.message);
-//     } else {
-//         console.error('객체 처리 오류 발생:', '알 수 없는 오류');
-//     }
+// } catch (error) {
+//     console.error('Object processing error occurred:', error.message);
 // }
 // console.log('--------------------------------');
 
 // console.log('--------------------------------');
-// console.log('5. 타입스크립트 문자열 타입 안전성');
+// console.log('5. TypeScript String Type Safety');
 // try {
-//     console.log(tsCreateFilePath('user', 'profile.jpg')); // 정상 케이스
-//     // 타입스크립트에서는 컴파일 시 오류 발생: console.log(tsCreateFilePath('user', null));
+//     console.log(tsCreateFilePath('user', 'profile.jpg')); // Normal case
+//     // TypeScript will show compile error: console.log(tsCreateFilePath('user', null));
 //     console.log(tsCreateFilePath('user', '../profile.jpg')); // Error
-// } catch (error: unknown) {
-//     if (error instanceof Error) {
-//         console.error('파일 경로 오류 발생:', error.message);
-//     } else {
-//         console.error('파일 경로 오류 발생:', '알 수 없는 오류');
-//     }
+// } catch (error) {
+//     console.error('File path error occurred:', error.message);
 // }
 // console.log('--------------------------------');
 
-console.log('--------------------------------');
-console.log('6. 타입스크립트 null, undefined 처리');
-try {
-    console.log(tsNullUndefinedHandling({ value: 'test' })); // 정상 케이스
-    // console.log(tsNullUndefinedHandling(null));
-    // console.log(tsNullUndefinedHandling({}));
-} catch (error) {
-    if (error instanceof Error) {
-        console.error('null/undefined 처리 오류 발생:', error.message);
-    } else {
-        console.error('null/undefined 처리 오류 발생:', '알 수 없는 오류');
-    }
-}
-console.log('--------------------------------'); 
+// console.log('--------------------------------');
+// console.log('6. TypeScript Null and Undefined Handling');
+// try {
+//     console.log(tsNullUndefinedHandling({ value: 'test' })); // Normal case
+//     // TypeScript will show compile error: console.log(tsNullUndefinedHandling(null));
+//     // TypeScript will show compile error: console.log(tsNullUndefinedHandling({}));
+// } catch (error) {
+//     console.error('Null/undefined handling error occurred:', error.message);
+// }
+// console.log('--------------------------------'); 

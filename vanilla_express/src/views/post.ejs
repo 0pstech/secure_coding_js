@@ -1,0 +1,91 @@
+<%- include('partials/header') %>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    .wrapper {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .content {
+        flex: 1;
+    }
+    footer {
+        margin-top: auto;
+    }
+    .post-content {
+        margin-top: 2rem;
+    }
+    .post-header {
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    .post-body {
+        min-height: 200px;
+    }
+    .login-message {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.25rem;
+        border-left: 4px solid #0d6efd;
+    }
+    .post-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+</style>
+
+<div class="wrapper">
+    <div class="content">
+        <div class="container mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title"><%= post.title %></h1>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        Posted by <%= post.author_name %> on <%= new Date(post.created_at).toLocaleDateString() %>
+                    </h6>
+                    <div class="card-text mt-4">
+                        <%= post.content %>
+                    </div>
+                    <div class="mt-4">
+                        <div class="post-actions">
+                            <a href="/posts" class="btn btn-secondary">Back to List</a>
+                            <a href="/posts/<%= post.id %>/edit" class="btn btn-warning">Edit</a>
+                            <button class="btn btn-danger" onclick="deletePost(<%= post.id %>)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include('partials/footer') %>
+</div>
+
+<script>
+async function deletePost(postId) {
+    if (confirm('Are you sure you want to delete this post?')) {
+        try {
+            const response = await fetch(`/posts/${postId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                window.location.href = '/posts';
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Failed to delete post');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the post');
+        }
+    }
+}
+
+</script> 
