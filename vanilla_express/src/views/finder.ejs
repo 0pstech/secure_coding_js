@@ -1,0 +1,29 @@
+<%- include('partials/header') %>
+
+<div class="container mt-5">
+    <h1>Finder</h1>
+    <form id="fileForm">
+        <div class="mb-3">
+            <label for="directoryPath" class="form-label">Enter Directory Path:</label>
+            <input type="text" class="form-control" id="directoryPath" name="directoryPath" required>
+        </div>
+        <button type="submit" class="btn btn-primary">List Files</button>
+    </form>
+    <pre id="fileContent" class="mt-3"></pre>
+</div>
+
+<script>
+    document.getElementById('fileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const filePath = document.getElementById('directoryPath').value;
+        try {
+            const response = await fetch(`/list-files?directoryPath=${encodeURIComponent(filePath)}`);
+            const data = await response.text();
+            document.getElementById('fileContent').textContent = data;
+        } catch (error) {
+            document.getElementById('fileContent').textContent = 'Error reading file';
+        }
+    });
+</script>
+
+<%- include('partials/footer') %> 

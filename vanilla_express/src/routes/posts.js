@@ -24,7 +24,7 @@ router.get('/:id/edit', isAuthenticated, async (req, res) => {
         }
         
         // Check if user is author or admin
-        if (post.author_id !== req.user.id && req.user.role !== 'admin') {
+        if (post.author_id !== req.user.id && !req.user.is_admin) {
             return res.status(403).render('error', { 
                 title: 'Access Denied',
                 message: 'You do not have permission to edit this post' 
@@ -78,7 +78,8 @@ router.get('/:id', async (req, res) => {
         if (!post) {
             return res.status(404).render('error', { 
                 title: 'Error',
-                message: 'Post not found' 
+                message: 'Post not found',
+                user: req.user // user 정보 전달 유지
             });
         }
         
@@ -98,9 +99,13 @@ router.get('/:id', async (req, res) => {
         if (req.xhr || req.headers.accept.indexOf('json') > -1) {
             return res.status(500).json({ error: 'Failed to fetch post' });
         }
-        res.status(500).render('error', { 
-            title: 'Error',
-            message: 'Failed to fetch post' 
+        // **취약점**: 잡힌 에러 객체 전체를 error.ejs 템플릿으로 전달!
+        res.status(500).render('error', {
+            title: 'Database Error (Intentionally Exposed)',
+            message: 'An error occurred while fetching the post. Details below:',
+            // 실제 운영 환경에서는 절대 error 객체를 직접 전달하면 안됨!
+            error: error, // 에러 객체 전달
+            user: req.user // 헤더/푸터 위해 user 정보는 계속 전달
         });
     }
 });
@@ -141,7 +146,7 @@ router.put('/:id', isAuthenticated, async (req, res) => {
         }
 
         // Check if user is author or admin
-        if (post.author_id !== req.user.id && req.user.role !== 'admin') {
+        if (post.author_id !== req.user.id && !req.user.is_admin) {
             return res.status(403).json({ error: 'You do not have permission to edit this post' });
         }
 

@@ -1,11 +1,11 @@
-const User = require('../models/User');
+const { userModel } = require('../models/user');
 
 const adminService = {
     // Get dashboard statistics
     getDashboardStats: async () => {
         try {
-            const totalUsers = await User.countDocuments();
-            const recentUsers = await User.find()
+            const totalUsers = await userModel.countDocuments();
+            const recentUsers = await userModel.find()
                 .sort({ createdAt: -1 })
                 .limit(5)
                 .select('username email createdAt');
@@ -23,7 +23,7 @@ const adminService = {
     // Get all users
     getAllUsers: async () => {
         try {
-            return await User.find()
+            return await userModel.find()
                 .select('username email role createdAt lastLogin')
                 .sort({ createdAt: -1 });
         } catch (error) {
@@ -35,17 +35,17 @@ const adminService = {
     // Delete a user
     deleteUser: async (userId) => {
         try {
-            const user = await User.findById(userId);
+            const user = await userModel.findById(userId);
             if (!user) {
                 throw new Error('User not found');
             }
             
             // Prevent deleting admin users
-            if (user.role === 'admin') {
+            if (req.user.is_admin) {
                 throw new Error('Cannot delete admin users');
             }
             
-            await User.findByIdAndDelete(userId);
+            await userModel.findByIdAndDelete(userId);
         } catch (error) {
             console.error('Error deleting user:', error);
             throw error;

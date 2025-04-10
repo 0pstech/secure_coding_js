@@ -1,9 +1,7 @@
 const jwt = require('jsonwebtoken');
-const { auth } = require('../models');
+const { userModel } = require('../models/user');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// Authentication middleware
+// Verify JWT token and set user
 const isAuthenticated = async (req, res, next) => {
     try {
         const token = req.cookies.token;
@@ -11,10 +9,11 @@ const isAuthenticated = async (req, res, next) => {
             return res.redirect('/auth/login');
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await auth.findUserById(decoded.id);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await userModel.getUserById(decoded.id);
         
         if (!user) {
+            res.clearCookie('token');
             return res.redirect('/auth/login');
         }
 
@@ -22,40 +21,23 @@ const isAuthenticated = async (req, res, next) => {
         next();
     } catch (error) {
         console.error('Auth error:', error);
+        res.clearCookie('token');
         res.redirect('/auth/login');
     }
 };
 
-// Admin role check middleware
-const isAdmin = async (req, res, next) => {
-    try {
-        const token = req.cookies.token;
-        if (!token) {
-            return res.status(403).render('error', {
-                title: 'Access Denied',
-                message: 'You do not have permission to access this page.'
-            });
-        }
-
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await auth.findUserById(decoded.id);
-        
-        if (!user || user.role !== 'admin') {
-            return res.status(403).render('error', {
-                title: 'Access Denied',
-                message: 'You do not have permission to access this page.'
-            });
-        }
-
-        req.user = user;
-        next();
-    } catch (error) {
-        console.error('Admin auth error:', error);
-        res.status(403).render('error', {
+// Check if user is admin
+const isAdmin = (req, res, next) => {
+    console.log('Checking admin status for user:', req.user);
+    if (!req.user || !req.user.is_admin) {
+        console.log('Access denied. User is not admin:', req.user);
+        return res.status(403).render('error', {
             title: 'Access Denied',
-            message: 'You do not have permission to access this page.'
+            message: 'You do not have permission to access this page'
         });
     }
+    console.log('User is admin:', req.user);
+    next();
 };
 
 module.exports = {

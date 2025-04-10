@@ -7,6 +7,9 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const passport = require('passport');
 const path = require('path');
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const { userModel } = require('./models/user');
 
 // Import routes
 const authRouter = require('./routes/auth');
@@ -56,9 +59,31 @@ app.use((req, res, next) => {
     next();
 });
 
+// Set user information for all routes
+app.use(async (req, res, next) => {
+    try {
+        const token = req.cookies.token;
+        if (token) {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            console.log('Decoded token:', decoded);
+            const user = await userModel.getUserById(decoded.id);
+            console.log('Found user:', user);
+            if (user) {
+                req.user = user;
+                res.locals.user = user; // Make user available in templates
+                console.log('Set user in request:', req.user);
+            }
+        }
+        next();
+    } catch (error) {
+        console.error('Error setting user info:', error);
+        next();
+    }
+});
+
 // Routes
-app.use('/auth', authRouter);
 app.use('/posts', postsRouter);
+app.use('/auth', authRouter);
 app.use('/admin', adminRouter);
 
 // Main page route
@@ -66,6 +91,39 @@ app.get('/', (req, res) => {
     res.render('index', { 
         title: 'Home',
         user: req.user 
+    });
+});
+
+// Add this route in app.js
+app.get('/finder', (req, res) => {
+    res.render('finder', { title: 'File Finder' });
+});
+
+// Base directory setting
+const baseDirectory = path.join(__dirname, 'public');
+
+app.get('/list-files', (req, res) => {
+    const directoryPath = req.query.directoryPath || baseDirectory;
+    const fullPath = path.join(baseDirectory, directoryPath);
+
+    fs.readdir(fullPath, (err, files) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error reading directory' });
+        }
+        res.json(files);
+    });
+});
+
+app.get('/read-file', (req, res) => {
+    const filePath = req.query.filePath; // File path entered by the user
+    const fullPath = path.join(__dirname, filePath); // Combine paths
+
+    // Read file
+    fs.readFile(fullPath, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send('Error reading file');
+        }
+        res.send(data);
     });
 });
 

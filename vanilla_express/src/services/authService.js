@@ -1,13 +1,26 @@
-const crypto = require('crypto');
+const { verifyWithBcrypt } = require('../lib/hash');
+
 const jwt = require('jsonwebtoken');
 const { auth } = require('../models');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000; // 24시간
+const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
 
 const authService = {
-    // 회원가입
+    // Registration
     async register(userData) {
+
+        const password = userData.password;
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{15,64}$/;
+
+        // password length & complexity check
+        // return 400 Bad request 
+        if (!passwordRegex.test(password)) {
+            const error = new Error();
+            error.code = 'PASSWORD_RULE_MISMATCH';
+            throw error;
+        }
+
         try {
             const user = await auth.createUser(userData);
             return user;
@@ -16,17 +29,24 @@ const authService = {
         }
     },
 
-    // 로그인
+    // Login
     async login(username, password) {
+        console.log(`[authService/login] Attempting login for user: ${username}`);
         try {
             const user = await auth.findUserByUsername(username);
             if (!user) {
-                throw new Error('User not found');
+                console.log(`[authService/login] User not found - ${username}`);
+                return { success: false, reason: 'User not found' };
             }
-            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-            const isValid = await this.validatePassword(hashedPassword, user.password);
+            console.log(`[authService/login] Found user: ${username}, Stored hash: ${user.password}`);
+            console.log(`[authService/login] Password provided for comparison: ${password}`);
+
+            const isValid = await verifyWithBcrypt(password, user.password);
+            console.log(`[authService/login] Password validation result for ${username}: ${isValid}`);
+
             if (!isValid) {
-                throw new Error('Invalid password');
+                console.log(`[authService/login] Incorrect Password - ${username}`);
+                return { success: false, reason: 'Incorrect Password' };
             }
 
             const token = jwt.sign(
@@ -39,6 +59,7 @@ const authService = {
             );
 
             return {
+                success: true,
                 user: {
                     id: user.id,
                     username: user.username,
@@ -52,7 +73,7 @@ const authService = {
         }
     },
 
-    // 토큰 검증
+    // Token verification
     async verifyToken(token) {
         try {
             if (!token) {
@@ -60,7 +81,7 @@ const authService = {
             }
 
             const decoded = jwt.verify(token, JWT_SECRET);
-            const user = await auth.findUserById(decoded.id);
+            const user = await auth.getUserById(decoded.id);
 
             if (!user) {
                 return { isLoggedIn: false };
@@ -71,16 +92,18 @@ const authService = {
                 user: {
                     id: user.id,
                     username: user.username,
-                    email: user.email
+                    email: user.email,
+                    is_admin: user.is_admin
                 }
             };
         } catch (error) {
+            console.error('Token verification error:', error);
             return { isLoggedIn: false };
         }
     },
 
-    // 비밀번호 변경
-    async changePassword(userId, newPassword) {
+    // Password change
+    async changePassword(userId, currentPassword, newPassword) {
         try {
             const success = await auth.updatePassword(userId, newPassword);
             if (!success) {
@@ -90,11 +113,6 @@ const authService = {
         } catch (error) {
             throw error;
         }
-    },
-
-    // 비밀번호 검증
-    async validatePassword(inputPassword, hashedPassword) {
-        return inputPassword === hashedPassword;
     },
 };
 

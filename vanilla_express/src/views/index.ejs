@@ -25,7 +25,11 @@
                 <div class="col-md-8">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h1 class="mb-0">Recent Posts</h1>
-                        <button id="writeBtn" class="btn btn-primary" style="display: none;" onclick="window.location.href='/posts/new'">Write Post</button>
+                        <% if (typeof user !== 'undefined' && user) { %>
+                            <a href="/posts/new" class="btn btn-primary">Write Post</a>
+                        <% } else { %>
+                            <button id="writeBtn" class="btn btn-primary" style="display: none;" onclick="window.location.href='/posts/new'">Write Post</button>
+                        <% } %>
                     </div>
                     <div id="posts-container">
                         <% if (typeof posts !== 'undefined') { %>
@@ -56,7 +60,13 @@
                     <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Welcome!</h5>
-                            <p class="card-text" id="userInfo"></p>
+                            <p class="card-text" id="userInfo">
+                                <% if (typeof user !== 'undefined' && user) { %>
+                                    Hello, <%= user.username %>!
+                                <% } else { %>
+                                    Please login to write posts.
+                                <% } %>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -74,14 +84,21 @@ async function checkLoginStatus() {
             credentials: 'include'
         });
         const data = await response.json();
-        
+        console.log(data);
         if (data.isLoggedIn) {
             document.getElementById('userInfo').textContent = `Hello, ${data.user.username}!`;
-            document.getElementById('writeBtn').style.display = 'inline-block';
+            if (document.getElementById('writeBtn')) {
+                document.getElementById('writeBtn').style.display = 'inline-block';
+            }
+            document.getElementById('login-message').style.display = 'none';
             loadPosts();
         } else {
             document.getElementById('userInfo').textContent = 'Please login to write posts.';
-            document.getElementById('writeBtn').style.display = 'none';
+            
+            if (document.getElementById('writeBtn')) {
+                document.getElementById('writeBtn').style.display = 'none';
+            }
+            document.getElementById('login-message').style.display = 'block';
         }
     } catch (error) {
         console.error('Error checking login status:', error);
@@ -170,17 +187,19 @@ async function loadPosts(category = 'all') {
 }
 
 // Category filter
-document.querySelectorAll('[data-category]').forEach(link => {
-    link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const category = this.dataset.category;
-        loadPosts(category);
-        
-        // Update active state
-        document.querySelectorAll('[data-category]').forEach(el => {
-            el.classList.remove('active');
+if (document.querySelectorAll('[data-category]').length > 0) {
+    document.querySelectorAll('[data-category]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const category = this.dataset.category;
+            loadPosts(category);
+            
+            // Update active state
+            document.querySelectorAll('[data-category]').forEach(el => {
+                el.classList.remove('active');
+            });
+            this.classList.add('active');
         });
-        this.classList.add('active');
     });
-});
+}
 </script> 

@@ -30,9 +30,23 @@
             <div class="error-container">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h1 class="display-4">Error</h1>
-                        <p class="lead"><%= message %></p>
-                        <a href="/" class="btn btn-primary">Return to Home</a>
+                        <h1 class="display-4"><%= title || 'Error' %></h1>
+                        <p class="lead"><%= message || 'An unexpected error occurred.' %></p>
+
+                        <% if (typeof error !== 'undefined' && error) { %>
+                            <div class="alert alert-secondary text-start mt-4">
+                                <h5 class="mb-2">Error Details (Intentionally Exposed for Education):</h5>
+                                <% if (error.message) { %><p class="mb-1"><strong>Message:</strong> <%= error.message %></p><% } %>
+                                <% if (error.code) { %><p class="mb-1"><strong>Code:</strong> <%= error.code %></p><% } %>
+                                <% if (error.errno) { %><p class="mb-1"><strong>Error Number:</strong> <%= error.errno %></p><% } %>
+                                <% if (error.sqlState) { %><p class="mb-1"><strong>SQL State:</strong> <%= error.sqlState %></p><% } %>
+                                <% if (error.sqlMessage) { %><p class="mb-1"><strong>SQL Message:</strong> <%= error.sqlMessage %></p><% } %>
+                                <p class="mb-1"><strong>Stack Trace:</strong></p>
+                                <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.8em;"><code><%= error.stack %></code></pre>
+                            </div>
+                        <% } %>
+
+                        <a href="/" class="btn btn-primary mt-3">Return to Home</a>
                     </div>
                 </div>
             </div>

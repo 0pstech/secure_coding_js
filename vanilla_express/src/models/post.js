@@ -1,80 +1,98 @@
 const pool = require('../config/database');
 
-const postModel = {
-    // 모든 게시글 조회
-    async getAllPosts() {
-        const connection = await pool.getConnection();
-        try {
-            const [rows] = await connection.query(`
-                SELECT p.*, u.username as author_name
-                FROM posts p
-                LEFT JOIN users u ON p.author_id = u.id
-                ORDER BY p.created_at DESC
-            `);
-            return rows;
-        } finally {
-            connection.release();
-        }
-    },
-
-    // 특정 게시글 조회
-    async getPostById(id) {
-        const connection = await pool.getConnection();
-        try {
-            const [rows] = await connection.query(`
-                SELECT p.*, u.username as author_name
-                FROM posts p
-                LEFT JOIN users u ON p.author_id = u.id
-                WHERE p.id = ?
-            `, [id]);
-            return rows[0] || null;
-        } finally {
-            connection.release();
-        }
-    },
-
-    // 게시글 생성
-    async createPost({ title, content, permission, author_id }) {
-        const connection = await pool.getConnection();
-        try {
-            const [result] = await connection.query(`
-                INSERT INTO posts (title, content, permission, author_id)
-                VALUES (?, ?, ?, ?)
-            `, [title, content, permission, author_id]);
-            return result.insertId;
-        } finally {
-            connection.release();
-        }
-    },
-
-    // 게시글 수정
-    async updatePost(id, { title, content, permission }) {
-        const connection = await pool.getConnection();
-        try {
-            const [result] = await connection.query(`
-                UPDATE posts
-                SET title = ?, content = ?, permission = ?
-                WHERE id = ?
-            `, [title, content, permission, id]);
-            return result.affectedRows > 0;
-        } finally {
-            connection.release();
-        }
-    },
-
-    // 게시글 삭제
-    async deletePost(id) {
-        const connection = await pool.getConnection();
-        try {
-            const [result] = await connection.query(`
-                DELETE FROM posts
-                WHERE id = ?
-            `, [id]);
-            return result.affectedRows > 0;
-        } finally {
-            connection.release();
-        }
+// Get all posts
+async function getAllPosts() {
+    try {
+        const [rows] = await pool.query(`
+            SELECT p.*, u.username as author_name 
+            FROM posts p
+            LEFT JOIN users u ON p.author_id = u.id
+            ORDER BY p.created_at DESC
+        `);
+        return rows;
+    } catch (error) {
+        console.error('Error in postModel.getAllPosts:', error);
+        throw error;
     }
-};
+}
 
-module.exports = postModel; 
+// VULNERABLE TO SQL INJECTION / TYPE ERRORS FOR EDUCATIONAL PURPOSES
+async function getPostById(id) {
+    console.warn(`[!!! VULNERABLE CODE !!!] Executing potentially unsafe SQL query for post ID: ${id}`);
+    try {
+        // **VULNERABLE CODE**: Directly concatenating ID into the query
+        // This bypasses parameterization and validation, making it prone to errors/injection
+        const sqlQuery = `
+            SELECT p.*, u.username as author_name 
+            FROM posts p
+            LEFT JOIN users u ON p.author_id = u.id
+            WHERE p.id = ${id} 
+        `; // ID inserted directly!
+        console.log(`[VULNERABLE CODE] Executing SQL Query: ${sqlQuery}`);
+        const [rows] = await pool.query(sqlQuery); // Executed without parameterization
+        // **END VULNERABLE CODE**
+
+        /* // Original secure code (commented out for reference)
+        const [rows] = await pool.query(`
+            SELECT p.*, u.username as author_name
+            FROM posts p
+            LEFT JOIN users u ON p.author_id = u.id
+            WHERE p.id = ?
+        `, [id]);
+        */
+
+        return rows[0]; // May return no result
+    } catch (error) {
+        console.error('Error in VULNERABLE getPostById:', error);
+        // Re-throw the error so it can be caught by the route handler's catch block
+        throw error;
+    }
+}
+
+// Create post
+async function createPost({ title, content, permission, author_id }) {
+    try {
+        const [result] = await pool.query(`
+            INSERT INTO posts (title, content, permission, author_id) 
+            VALUES (?, ?, ?, ?)
+        `, [title, content, permission, author_id]);
+        return result.insertId;
+    } catch (error) {
+        console.error('Error in postModel.createPost:', error);
+        throw error;
+    }
+}
+
+// Update post
+async function updatePost(id, { title, content, permission }) {
+    try {
+        const [result] = await pool.query(`
+            UPDATE posts 
+            SET title = ?, content = ?, permission = ?, updated_at = NOW()
+            WHERE id = ?
+        `, [title, content, permission, id]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error in postModel.updatePost:', error);
+        throw error;
+    }
+}
+
+// Delete post
+async function deletePost(id) {
+    try {
+        const [result] = await pool.query('DELETE FROM posts WHERE id = ?', [id]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error in postModel.deletePost:', error);
+        throw error;
+    }
+}
+
+module.exports = {
+    getAllPosts,
+    getPostById,
+    createPost,
+    updatePost,
+    deletePost
+}; 

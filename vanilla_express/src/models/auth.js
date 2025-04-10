@@ -1,92 +1,109 @@
 const pool = require('../config/database');
-const crypto = require('crypto');
+const { hashWithBcrypt } = require('../lib/hash');
 
-const authModel = {
-    // 사용자 생성 (회원가입)
-    async createUser({ username, password, email }) {
-        const connection = await pool.getConnection();
-        try {
-            // 사용자명 중복 체크
-            const [existingUsers] = await connection.query(
-                'SELECT id FROM users WHERE username = ?',
-                [username]
-            );
-
-            if (existingUsers.length > 0) {
-                throw new Error('Username already exists');
-            }
-            // 비밀번호 해시화
-            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-
-            // 사용자 생성
-            const [result] = await connection.query(
-                'INSERT INTO users (username, password, email, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
-                [username, hashedPassword, email]
-            );
-
-            return {
-                id: result.insertId,
-                username,
-                email
-            };
-        } catch (error) {
-            throw error;
-        } finally {
-            connection.release();
+// User creation (registration)
+async function createUser({ username, email, password, isAdmin = false }) {
+    try {
+        // Check username availability
+        const usernameCheck = await checkUsername(username);
+        if (usernameCheck) {
+            return { success: false, message: 'Username already exists' };
         }
-    },
-
-    // 사용자 조회 (로그인)
-    async findUserByUsername(username) {
-        const connection = await pool.getConnection();
-        try {
-            const [users] = await connection.query(
-                'SELECT * FROM users WHERE username = ?',
-                [username]
-            );
-
-            return users[0] || null;
-        } catch (error) {
-            throw error;
-        } finally {
-            connection.release();
-        }
-    },
-
-    // 사용자 ID로 조회
-    async findUserById(id) {
-        const connection = await pool.getConnection();
-        try {
-            const [users] = await connection.query(
-                'SELECT id, username, email, created_at FROM users WHERE id = ?',
-                [id]
-            );
-
-            return users[0] || null;
-        } catch (error) {
-            throw error;
-        } finally {
-            connection.release();
-        }
-    },
-
-    // 비밀번호 변경
-    async updatePassword(userId, newPassword) {
-        const connection = await pool.getConnection();
-        try {
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-            const [result] = await connection.query(
-                'UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?',
-                [hashedPassword, userId]
-            );
-
-            return result.affectedRows > 0;
-        } catch (error) {
-            throw error;
-        } finally {
-            connection.release();
-        }
+        
+        // crypto
+        // bcrypt
+        // const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+        const hashedPassword = await hashWithBcrypt(password);
+        // Create user
+        // **VULNERABLE CODE**: Directly concatenating user input into the query
+        const sqlQuery = `INSERT INTO users (username, password, email, is_admin) VALUES ('${username}', '${hashedPassword}', '${email}', ${isAdmin})`;
+        console.log('[VULNERABLE CODE] SQL Query:', sqlQuery);
+        const [result] = await pool.query(sqlQuery);
+        // **END VULNERABLE CODE**
+        
+        return { 
+            success: true, 
+            id: result.insertId,
+            username,
+            email
+        };
+    } catch (error) {
+        console.error('Error creating user:', error);
+        return { success: false, message: 'Database error' };
     }
-};
+}
 
-module.exports = authModel; 
+// User lookup (login) - VULNERABLE TO SQL INJECTION FOR EDUCATIONAL PURPOSES
+async function findUserByUsername(username) {
+    console.warn('[!!! VULNERABLE CODE !!!] Executing potentially unsafe SQL query for username:', username);
+    try {
+        // **VULNERABLE CODE**: Directly concatenating user input into the query
+        const sqlQuery = `SELECT * FROM users WHERE username = '${username}'`;
+        console.log('[VULNERABLE CODE] SQL Query:', sqlQuery); 
+        const [rows] = await pool.query(sqlQuery);
+        // **END VULNERABLE CODE**
+        
+        // Original secure code (commented out):
+        // const [rows] = await pool.query(
+        //     'SELECT * FROM users WHERE username = ?',
+        //     [username]
+        // );
+        return rows[0];
+    } catch (error) {
+        console.error('Error finding user:', error);
+        // Avoid leaking detailed errors in a real scenario
+        return null;
+    }
+}
+
+// Get user by ID
+async function getUserById(id) {
+    try {
+        const [rows] = await pool.query(
+            'SELECT id, username, email, is_admin, created_at FROM users WHERE id = ?',
+            [id]
+        );
+        return rows[0];
+    } catch (error) {
+        console.error('Error getting user by ID:', error);
+        return null;
+    }
+}
+
+// Change password
+async function updatePassword(userId, newPassword) {
+    try {
+        // const hashedPassword = crypto.createHash('sha256').update(newPassword).digest('hex');
+        const hashedPassword = await hashWithBcrypt(newPassword);
+        
+        const [result] = await pool.query(
+            'UPDATE users SET password = ? WHERE id = ?',
+            [hashedPassword, userId]
+        );
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error updating password:', error);
+        return false;
+    }
+}
+
+async function checkUsername(username) {
+    try {
+        const [rows] = await pool.query(
+            'SELECT id FROM users WHERE username = ?',
+            [username]
+        );
+        return rows.length > 0;
+    } catch (error) {
+        console.error('Error checking username:', error);
+        return true; // Return true on error to prevent registration
+    }
+}
+
+module.exports = {
+    createUser,
+    findUserByUsername,
+    getUserById,
+    updatePassword,
+    checkUsername
+}; 

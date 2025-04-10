@@ -1,69 +1,69 @@
-const postModel = require('../models/post');
+const { post } = require('../models');
 
 const boardService = {
     
-    // 모든 게시글 조회
+    // Get all posts
     async getAllPosts() {
         try {
-            return await postModel.getAllPosts();
+            return await post.getAllPosts();
         } catch (error) {
             console.error('Error in boardService.getAllPosts:', error);
             throw error;
         }
     },
 
-    // 특정 게시글 조회
+    // Get post by ID
     async getPostById(id) {
         try {
-            const post = await postModel.getPostById(id);
-            if (!post) {
+            const postData = await post.getPostById(id);
+            if (!postData) {
                 throw new Error('Post not found');
             }
-            return post;
+            return postData;
         } catch (error) {
             console.error('Error in boardService.getPostById:', error);
             throw error;
         }
     },
 
-    // 게시글 생성
-    async createPost({ title, content, permission, author_id }) {
+    // Create post
+    async createPost(postData) {
         try {
-            if (!title || !content || !permission || !author_id) {
+            if (!postData.title || !postData.content || !postData.permission || !postData.author_id) {
                 throw new Error('Missing required fields');
             }
-            return await postModel.createPost({ title, content, permission, author_id });
+            return await post.createPost(postData);
         } catch (error) {
             console.error('Error in boardService.createPost:', error);
             throw error;
         }
     },
 
-    // 게시글 수정
-    async updatePost(id, { title, content, permission }) {
+    // Update post
+    async updatePost(id, postData) {
         try {
-            if (!title || !content || !permission) {
-                throw new Error('Missing required fields');
-            }
-            const success = await postModel.updatePost(id, { title, content, permission });
-            if (!success) {
+            const existingPost = await post.getPostById(id);
+            if (!existingPost) {
                 throw new Error('Post not found');
             }
-            return success;
+            
+            // Sanitize post data here if needed
+            
+            return await post.updatePost(id, postData);
         } catch (error) {
             console.error('Error in boardService.updatePost:', error);
             throw error;
         }
     },
 
-    // 게시글 삭제
+    // Delete post
     async deletePost(id) {
         try {
-            const success = await postModel.deletePost(id);
-            if (!success) {
+            const existingPost = await post.getPostById(id);
+            if (!existingPost) {
                 throw new Error('Post not found');
             }
-            return success;
+            return await post.deletePost(id);
         } catch (error) {
             console.error('Error in boardService.deletePost:', error);
             throw error;
