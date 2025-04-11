@@ -15,5 +15,7 @@
  - js: node src.js
  - ts: ts-node src.ts
 
-## github 주소
- - https://github.com/0pstech/secure_coding_js
+## vanilla_express 프로젝트
+ - 초기 버전: steps/0_init_vanilla.express.zip
+ - 안전한 인증 적용: steps/1_auth_vanilla.express.zip
+ - SQL 인젝션 방어 적용: steps/0_sql_vanilla.express.zip
