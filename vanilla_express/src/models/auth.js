@@ -9,17 +9,13 @@ async function createUser({ username, email, password, isAdmin = false }) {
         if (usernameCheck) {
             return { success: false, message: 'Username already exists' };
         }
-        
-        // crypto
-        // bcrypt
+
         // const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
         const hashedPassword = await hashWithBcrypt(password);
         // Create user
-        // **VULNERABLE CODE**: Directly concatenating user input into the query
-        const sqlQuery = `INSERT INTO users (username, password, email, is_admin) VALUES ('${username}', '${hashedPassword}', '${email}', ${isAdmin})`;
-        console.log('[VULNERABLE CODE] SQL Query:', sqlQuery);
-        const [result] = await pool.query(sqlQuery);
-        // **END VULNERABLE CODE**
+        const [result] = await pool.query(`
+            INSERT INTO users (username, password, email, is_admin) VALUES
+            (?, ?, ?, ?)`, [username, hashedPassword, email, isAdmin]);
         
         return { 
             success: true, 

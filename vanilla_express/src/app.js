@@ -8,6 +8,8 @@ const flash = require('connect-flash');
 const passport = require('passport');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
+const cheerio = require('cheerio');
 const fs = require('fs');
 const { userModel } = require('./models/user');
 
@@ -84,12 +86,19 @@ app.use(async (req, res, next) => {
 // Routes
 app.use('/posts', postsRouter);
 app.use('/auth', authRouter);
-app.use('/admin', adminRouter);
+app.use('/mng1515', adminRouter);
 
 // Main page route
 app.get('/', (req, res) => {
     res.render('index', { 
         title: 'Home',
+        user: req.user 
+    });
+});
+
+app.get('/chatbot', (req, res) => {
+    res.render('chatbot', { 
+        title: 'Chatbot',
         user: req.user 
     });
 });
@@ -125,6 +134,32 @@ app.get('/read-file', (req, res) => {
         }
         res.send(data);
     });
+});
+
+app.get('/link-preview', async (req, res) => {
+
+    const { url } = req.query;
+
+    console.log('preview request - ', url);
+
+    try {
+        const response = await axios.get(url, { timeout: 3000 });
+        const $ = cheerio.load(response.data);
+
+        const title = $('meta[property="og:title"]').attr('content') || $('title').text();
+        const description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content');
+        const image = $('meta[property="og:image"]').attr('content');
+
+        res.json({
+            title: title || 'No title',
+            description: description || '',
+            image,
+            url
+        });
+    } catch (err) {
+        console.error('Link preview fetch error:', err.message);
+        res.status(400).json({ error: 'Failed to fetch preview' });
+    }
 });
 
 // 404 error handling

@@ -68,7 +68,9 @@ const authController = {
                 return res.status(409).json({ message: 'Username or email already in use.' });
             } else if (error.code === 'PASSWORD_RULE_MISMATCH') {
                 return res.status(400).json({ message: 'Password must be 15-64 chars. include uppercase, number, and special chars.' });
-            }  
+            } else if (error.name === 'ValidationError') {
+                return res.status(400).json({ message: error.message });
+            }
             res.status(500).json({ message: 'An error occurred during registration.' });
         }
     },

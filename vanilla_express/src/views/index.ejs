@@ -84,13 +84,15 @@ async function checkLoginStatus() {
             credentials: 'include'
         });
         const data = await response.json();
-        console.log(data);
         if (data.isLoggedIn) {
             document.getElementById('userInfo').textContent = `Hello, ${data.user.username}!`;
             if (document.getElementById('writeBtn')) {
                 document.getElementById('writeBtn').style.display = 'inline-block';
             }
-            document.getElementById('login-message').style.display = 'none';
+            if (document.getElementById('login-message')) {
+                document.getElementById('login-message').style.display = 'none';
+
+            }
             loadPosts();
         } else {
             document.getElementById('userInfo').textContent = 'Please login to write posts.';
@@ -121,7 +123,6 @@ async function loadPosts(category = 'all') {
             }
         });
         const posts = await response.json();
-        console.log(posts);
 
         const container = document.getElementById('posts-container');
         container.innerHTML = posts.map(post => `

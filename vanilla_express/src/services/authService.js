@@ -2,13 +2,35 @@ const { verifyWithBcrypt } = require('../lib/hash');
 
 const jwt = require('jsonwebtoken');
 const { auth } = require('../models');
+const { isValidUsername, isValidEmail } = require('../lib/validator');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
 
+class ValidationError extends Error {
+    constructor(message, code = 'VALIDATION_ERROR') {
+      super(message);
+      this.name = 'ValidationError';
+      this.code = code;
+      this.status = 400;
+    }
+  }
+
 const authService = {
     // Registration
     async register(userData) {
+
+        // whitelist - accept only allowed data
+        // blacklist - block some pattern 
+        
+        // userData validation
+        if (!isValidUsername(userData.username)) {
+            throw new ValidationError('Invalid username', 'INVALID_USERNAME');
+        }
+
+        if (!isValidEmail(userData.email)) {
+            throw new ValidationError('Invalid email', 'INVALID_EMAIL');
+        }
 
         const password = userData.password;
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{15,64}$/;
