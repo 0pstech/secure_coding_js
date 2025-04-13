@@ -11,6 +11,7 @@
 ## 2. run server
  - nvm use 22.14.0
  - cd vanilla_express
+ - npm install
  - npm run dev
 
 ## 3. connect server

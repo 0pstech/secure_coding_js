@@ -16,6 +16,7 @@
  - ts: ts-node src.ts
 
 ## vanilla_express 프로젝트
- - 초기 버전: steps/0_init_vanilla.express.zip
- - 안전한 인증 적용: steps/1_auth_vanilla.express.zip
- - SQL 인젝션 방어 적용: steps/0_sql_vanilla.express.zip
+ - 초기 버전: steps/0_init_vanilla_express.zip
+ - 안전한 인증 적용: steps/1_auth_vanilla_express.zip
+ - SQL 인젝션 방어 적용: steps/2_sql_vanilla_express.zip
+ - 최종 완료: steps/3_final_vanilla_express.zip
