@@ -1,48 +1,15 @@
-const { verifyWithBcrypt } = require('../lib/hash');
-
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { auth } = require('../models');
-const { isValidUsername, isValidEmail } = require('../lib/validator');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const SALT_ROUNDS = 10;
 const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
-
-class ValidationError extends Error {
-    constructor(message, code = 'VALIDATION_ERROR') {
-      super(message);
-      this.name = 'ValidationError';
-      this.code = code;
-      this.status = 400;
-    }
-  }
 
 const authService = {
     // Registration
     async register(userData) {
-
-        // whitelist - accept only allowed data
-        // blacklist - block some pattern 
-        
-        // userData validation
-        if (!isValidUsername(userData.username)) {
-            throw new ValidationError('Invalid username', 'INVALID_USERNAME');
-        }
-
-        if (!isValidEmail(userData.email)) {
-            throw new ValidationError('Invalid email', 'INVALID_EMAIL');
-        }
-
-        const password = userData.password;
-        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{15,64}$/;
-
-        // password length & complexity check
-        // return 400 Bad request 
-        if (!passwordRegex.test(password)) {
-            const error = new Error();
-            error.code = 'PASSWORD_RULE_MISMATCH';
-            throw error;
-        }
-
+        console.log('userdata - ', userData);
         try {
             const user = await auth.createUser(userData);
             return user;
@@ -53,22 +20,15 @@ const authService = {
 
     // Login
     async login(username, password) {
-        console.log(`[authService/login] Attempting login for user: ${username}`);
         try {
             const user = await auth.findUserByUsername(username);
             if (!user) {
-                console.log(`[authService/login] User not found - ${username}`);
-                return { success: false, reason: 'User not found' };
+                throw new Error('User not found');
             }
-            console.log(`[authService/login] Found user: ${username}, Stored hash: ${user.password}`);
-            console.log(`[authService/login] Password provided for comparison: ${password}`);
-
-            const isValid = await verifyWithBcrypt(password, user.password);
-            console.log(`[authService/login] Password validation result for ${username}: ${isValid}`);
-
+            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+            const isValid = await this.validatePassword(hashedPassword, user.password);
             if (!isValid) {
-                console.log(`[authService/login] Incorrect Password - ${username}`);
-                return { success: false, reason: 'Incorrect Password' };
+                throw new Error('Invalid password');
             }
 
             const token = jwt.sign(
@@ -81,7 +41,6 @@ const authService = {
             );
 
             return {
-                success: true,
                 user: {
                     id: user.id,
                     username: user.username,
@@ -135,6 +94,11 @@ const authService = {
         } catch (error) {
             throw error;
         }
+    },
+
+    // Password validation
+    async validatePassword(inputPassword, hashedPassword) {
+        return inputPassword === hashedPassword;
     },
 };
 

@@ -15,14 +15,7 @@ const boardService = {
     // Get post by ID
     async getPostById(id) {
         try {
-            // filtering id
-            const numericid = Number(id);
-
-            if (!Number.isInteger(numericid) || numericid <= 0) {
-                throw new Error('Invalid post ID');
-            }
-
-            const postData = await post.getPostById(numericid);
+            const postData = await post.getPostById(id);
             if (!postData) {
                 throw new Error('Post not found');
             }

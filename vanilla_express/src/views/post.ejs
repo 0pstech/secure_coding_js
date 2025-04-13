@@ -50,7 +50,7 @@
                         Posted by <%= post.author_name %> on <%= new Date(post.created_at).toLocaleDateString() %>
                     </h6>
                     <div class="card-text mt-4">
-                        <%- post.content %>
+                        <%= post.content %>
                     </div>
                     <div class="mt-4">
                         <div class="post-actions">

@@ -18,14 +18,28 @@ async function getAllPosts() {
 
 // VULNERABLE TO SQL INJECTION / TYPE ERRORS FOR EDUCATIONAL PURPOSES
 async function getPostById(id) {
+    console.warn(`[!!! VULNERABLE CODE !!!] Executing potentially unsafe SQL query for post ID: ${id}`);
     try {
-        // prepared statement/parameterized query
-        const [rows] = await pool.query(`
+        // **VULNERABLE CODE**: Directly concatenating ID into the query
+        // This bypasses parameterization and validation, making it prone to errors/injection
+        const sqlQuery = `
             SELECT p.*, u.username as author_name 
+            FROM posts p
+            LEFT JOIN users u ON p.author_id = u.id
+            WHERE p.id = ${id} 
+        `; // ID inserted directly!
+        console.log(`[VULNERABLE CODE] Executing SQL Query: ${sqlQuery}`);
+        const [rows] = await pool.query(sqlQuery); // Executed without parameterization
+        // **END VULNERABLE CODE**
+
+        /* // Original secure code (commented out for reference)
+        const [rows] = await pool.query(`
+            SELECT p.*, u.username as author_name
             FROM posts p
             LEFT JOIN users u ON p.author_id = u.id
             WHERE p.id = ?
         `, [id]);
+        */
 
         return rows[0]; // May return no result
     } catch (error) {

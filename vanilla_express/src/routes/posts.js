@@ -102,7 +102,10 @@ router.get('/:id', async (req, res) => {
         // **취약점**: 잡힌 에러 객체 전체를 error.ejs 템플릿으로 전달!
         res.status(500).render('error', {
             title: 'Database Error (Intentionally Exposed)',
-            message: 'An error occurred while fetching the post.',
+            message: 'An error occurred while fetching the post. Details below:',
+            // 실제 운영 환경에서는 절대 error 객체를 직접 전달하면 안됨!
+            error: error, // 에러 객체 전달
+            user: req.user // 헤더/푸터 위해 user 정보는 계속 전달
         });
     }
 });

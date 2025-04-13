@@ -56,7 +56,6 @@
         font-family: monospace;
         resize: vertical;
     }
-    /* 미리보기 영역(에디터 내용 미리보기) */
     #preview {
         border: 1px solid #dee2e6;
         border-radius: 0.25rem;
@@ -64,14 +63,6 @@
         margin-top: 1rem;
         min-height: 200px;
         background-color: #fff;
-    }
-    /* 자동 링크 프리뷰 결과를 표시할 영역 */
-    #autoPreview {
-        border: 1px dashed #0d6efd;
-        border-radius: 0.25rem;
-        padding: 1rem;
-        margin-top: 1rem;
-        background-color: #f1f8ff;
     }
 </style>
 
@@ -108,13 +99,10 @@
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="showPreview">
                             <label class="form-check-label" for="showPreview">
-                                Show Text Preview
+                                Show Preview
                             </label>
                         </div>
-                        <!-- 에디터 내용 미리보기 영역 -->
                         <div id="preview" style="display: none;"></div>
-                        <!-- 자동 링크 프리뷰 영역 (하단에 표시) -->
-                        <div id="autoPreview" style="display: none;"></div>
                         <input type="hidden" id="content" name="content">
                     </div>
                     <div class="d-flex justify-content-end">
@@ -129,27 +117,19 @@
 </div>
 
 <script>
-// Editor and preview elements
+// Editor related variables
 const textEditor = document.getElementById('textEditor');
 const htmlEditor = document.getElementById('htmlEditor');
 const textTab = document.getElementById('textTab');
 const htmlTab = document.getElementById('htmlTab');
 const showPreview = document.getElementById('showPreview');
 const preview = document.getElementById('preview');
-const autoPreview = document.getElementById('autoPreview');
 const contentInput = document.getElementById('content');
 
-// Active editor mode: 'text' or 'html'
+// Currently active editor (text or html)
 let activeEditor = 'text';
 
-// Helper: Convert plain text URLs into clickable links
-function convertURLsToLinks(text) {
-    return text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-        return `<a href="${url}" class="preview-link">${url}</a>`;
-    });
-}
-
-// Switch editor tabs
+// Tab switching function
 function switchTab(mode) {
     if (mode === 'text') {
         textTab.classList.add('active');
@@ -157,7 +137,7 @@ function switchTab(mode) {
         textEditor.style.display = 'block';
         htmlEditor.style.display = 'none';
         
-        // When switching from HTML to text, strip HTML tags
+        // Remove HTML tags when switching from HTML to text
         if (activeEditor === 'html') {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = htmlEditor.value;
@@ -171,7 +151,7 @@ function switchTab(mode) {
         textEditor.style.display = 'none';
         htmlEditor.style.display = 'block';
         
-        // When switching from text to HTML, wrap lines in <p> tags
+        // Wrap text in p tags when switching from text to HTML
         if (activeEditor === 'text') {
             const lines = textEditor.value.split('\n').filter(line => line.trim() !== '');
             htmlEditor.value = lines.map(line => `<p>${line}</p>`).join('\n');
@@ -183,73 +163,27 @@ function switchTab(mode) {
     updatePreview();
 }
 
-// Fetch link preview from (vulnerable) API and update auto preview area
-async function fetchAutoLinkPreview(url) {
-    try {
-        const response = await fetch(`/link-preview?url=${encodeURIComponent(url)}`);
-        const data = await response.json();
-        if(response.ok){
-            autoPreview.innerHTML = `
-                <div class="ssrf-preview-result">
-                    <strong>${data.title}</strong><br>
-                    ${data.description || ''}<br>
-                    <a href="${data.url}" target="_blank">${data.url}</a>
-                </div>
-            `;
-            autoPreview.style.display = 'block';
-        } else {
-            autoPreview.innerHTML = `<div class="ssrf-preview-error">${data.error || 'Failed to fetch preview.'}</div>`;
-            autoPreview.style.display = 'block';
-        }
-    } catch (error) {
-        console.error('Error fetching auto preview:', error);
-    }
-}
-
-// Update preview area based on active editor input and automatically trigger link preview if URL found
+// Update preview
 function updatePreview() {
-    // Update text preview area (if checkbox checked)
-    let contentHtml = '';
-    if (activeEditor === 'text') {
-        contentHtml = convertURLsToLinks(textEditor.value).replace(/\n/g, '<br>');
-    } else {
-        contentHtml = htmlEditor.value;
-    }
     if (showPreview.checked) {
         preview.style.display = 'block';
-        preview.innerHTML = contentHtml;
+        preview.innerHTML = activeEditor === 'text' 
+            ? textEditor.value.replace(/\n/g, '<br>') 
+            : htmlEditor.value;
     } else {
         preview.style.display = 'none';
     }
-    
-    // 자동으로 URL 감지하여 프리뷰 요청
-    let textContent = '';
-    if (activeEditor === 'text') {
-        textContent = textEditor.value;
-    } else {
-        // HTML 모드인 경우, 텍스트 콘텐츠 추출
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlEditor.value, 'text/html');
-        textContent = doc.body.textContent || "";
-    }
-    const urlMatches = textContent.match(/(https?:\/\/[^\s]+)/);
-    if(urlMatches && urlMatches[0]){
-         // 자동으로 첫 번째 URL에 대해 프리뷰 요청 실행
-         fetchAutoLinkPreview(urlMatches[0]);
-    } else {
-         autoPreview.style.display = 'none';
-         autoPreview.innerHTML = "";
-    }
 }
 
-// Event listeners for tab switching and editor input changes
+// Event listeners
 textTab.addEventListener('click', () => switchTab('text'));
 htmlTab.addEventListener('click', () => switchTab('html'));
+
 textEditor.addEventListener('input', updatePreview);
 htmlEditor.addEventListener('input', updatePreview);
+
 showPreview.addEventListener('change', updatePreview);
 
-// Form submission: copy content from active editor to hidden input
 document.getElementById('writeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -260,15 +194,21 @@ document.getElementById('writeForm').addEventListener('submit', async (e) => {
     const permission = document.getElementById('permission').value;
     const postId = document.getElementById('postId').value;
     const isEdit = postId !== '';
-    
+
     try {
         const response = await fetch(isEdit ? `/posts/${postId}` : '/posts', {
             method: isEdit ? 'PUT' : 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content, permission }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title,
+                content,
+                permission
+            }),
             credentials: 'include'
         });
-    
+
         if (response.ok) {
             window.location.href = '/posts';
         } else {
@@ -280,4 +220,4 @@ document.getElementById('writeForm').addEventListener('submit', async (e) => {
         alert('An error occurred while saving the post');
     }
 });
-</script>
+</script> 

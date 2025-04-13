@@ -34,17 +34,12 @@
 
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required
-                            minlength="15" maxlength="64">
-                            <div class="invalid-feedback">
-                                Password must be between 15 and 64 characters.
-                            </div>
+                            <input type="password" class="form-control" id="password" name="password" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="confirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required
-                            minlength="15" maxlength="64">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
                             <div class="invalid-feedback">
                                 Passwords do not match.
                             </div>
@@ -75,21 +70,10 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
 
-        const pwd = password.value;
-        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{15,64}$/;
-        
         if (!form.checkValidity()) {
             event.stopPropagation();
             form.classList.add('was-validated');
             return;
-        }
-
-        if (!passwordRegex.test(pwd)) {
-            password.setCustomValidity('Password must be 15-64 chars. include uppercase, number, and special chars.')
-            form.classList.add('was-validated');
-            return;
-        } else {
-            password.setCustomValidity('');
         }
 
         if (password.value !== confirmPassword.value) {

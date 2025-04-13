@@ -84,6 +84,7 @@ async function checkLoginStatus() {
             credentials: 'include'
         });
         const data = await response.json();
+        console.log(data);
         if (data.isLoggedIn) {
             document.getElementById('userInfo').textContent = `Hello, ${data.user.username}!`;
             if (document.getElementById('writeBtn')) {
@@ -123,6 +124,7 @@ async function loadPosts(category = 'all') {
             }
         });
         const posts = await response.json();
+        console.log(posts);
 
         const container = document.getElementById('posts-container');
         container.innerHTML = posts.map(post => `
