@@ -14,6 +14,12 @@ export interface Post {
   updated_at: string;
 }
 
+export interface CreatePostDto {
+  title: string;
+  content: string;
+  authorId?: number;
+}
+
 export interface AuthResponse {
   message: string;
   token: string;

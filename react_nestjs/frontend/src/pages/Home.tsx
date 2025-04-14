@@ -15,10 +15,10 @@ export default function Home() {
     const fetchPosts = async () => {
       try {
         const data = await getPosts();
-        console.log('게시글 목록:', data);
+        console.log('Post list:', data);
         setPosts(data);
       } catch (err) {
-        setError('게시글을 불러오는데 실패했습니다.');
+        setError('Failed to load posts.');
       } finally {
         setLoading(false);
       }
@@ -28,7 +28,7 @@ export default function Home() {
   }, []);
 
   const handlePostClick = (postId: number) => {
-    console.log('클릭된 게시글 ID:', postId);
+    console.log('Clicked post ID:', postId);
     navigate(`/posts/${postId.toString()}`);
   };
 
@@ -36,7 +36,7 @@ export default function Home() {
     return (
       <div className="text-center">
         <div className="spinner-border" role="status">
-          <span className="visually-hidden">로딩중...</span>
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
@@ -53,13 +53,13 @@ export default function Home() {
   return (
     <div className="container">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>게시글 목록</h2>
+        <h2>Post List</h2>
         {isAuthenticated && (
           <button
             className="btn btn-primary"
             onClick={() => navigate('/posts/new')}
           >
-            글쓰기
+            Write Post
           </button>
         )}
       </div>
@@ -67,9 +67,9 @@ export default function Home() {
         <table className="table table-hover">
           <thead>
             <tr>
-              <th style={{ width: '50%' }}>제목</th>
-              <th style={{ width: '20%' }}>작성자</th>
-              <th style={{ width: '30%' }}>작성일</th>
+              <th style={{ width: '50%' }}>Title</th>
+              <th style={{ width: '20%' }}>Author</th>
+              <th style={{ width: '30%' }}>Created Date</th>
             </tr>
           </thead>
           <tbody>
@@ -81,7 +81,7 @@ export default function Home() {
                 className="post-row"
               >
                 <td>{post.title}</td>
-                <td>{post.author.username}</td>
+                <td>{post.author?.username || 'Unknown'}</td>
                 <td>{new Date(post.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}

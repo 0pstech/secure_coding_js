@@ -4,7 +4,7 @@ import { RegisterDto, LoginDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('인증')
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
@@ -12,34 +12,34 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: '회원가입' })
-  @ApiResponse({ status: 201, description: '회원가입 성공' })
-  @ApiResponse({ status: 400, description: '잘못된 요청' })
+  @ApiOperation({ summary: 'Register' })
+  @ApiResponse({ status: 201, description: 'Registration successful' })
+  @ApiResponse({ status: 400, description: 'Invalid request' })
   async register(@Body() registerDto: RegisterDto) {
-    this.logger.log(`회원가입 시도: ${registerDto.email}`);
+    this.logger.log(`Registration attempt: ${registerDto.email}`);
     try {
       const result = await this.authService.register(registerDto);
-      this.logger.log(`회원가입 성공: ${registerDto.email}`);
+      this.logger.log(`Registration successful: ${registerDto.email}`);
       return result;
     } catch (error) {
-      this.logger.error(`회원가입 실패: ${registerDto.email}`, error.stack);
+      this.logger.error(`Registration failed: ${registerDto.email}`, error.stack);
       throw error;
     }
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '로그인' })
-  @ApiResponse({ status: 200, description: '로그인 성공' })
-  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiOperation({ summary: 'Login' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 401, description: 'Authentication failed' })
   async login(@Body() loginDto: LoginDto) {
-    this.logger.log(`로그인 시도: ${loginDto.username}`);
+    this.logger.log(`Login attempt: ${loginDto.username}`);
     try {
       const result = await this.authService.login(loginDto);
-      this.logger.log(`로그인 성공: ${loginDto.username}`);
+      this.logger.log(`Login successful: ${loginDto.username}`);
       return result;
     } catch (error) {
-      this.logger.error(`로그인 실패: ${loginDto.username}`, error.stack);
+      this.logger.error(`Login failed: ${loginDto.username}`, error.stack);
       throw error;
     }
   }
@@ -47,6 +47,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('check')
   async checkAuth() {
-    return { message: '인증 성공' };
+    return { message: 'Authentication successful' };
   }
 } 

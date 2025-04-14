@@ -7,33 +7,33 @@ export enum Permission {
 }
 
 export class CreatePostDto {
-  @ApiProperty({ example: '게시글 제목', description: '게시글 제목' })
+  @ApiProperty({ example: 'Post Title', description: 'Post title' })
   @IsString()
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: '게시글 내용입니다.', description: '게시글 내용' })
+  @ApiProperty({ example: 'Post content', description: 'Post content' })
   @IsString()
   @IsNotEmpty()
   content: string;
 
-  @ApiProperty({ enum: Permission, example: Permission.PUBLIC, description: '게시글 권한 설정' })
+  @ApiProperty({ enum: Permission, example: Permission.PUBLIC, description: 'Post permission setting' })
   @IsEnum(Permission)
   permission: Permission;
 }
 
 export class UpdatePostDto {
-  @ApiProperty({ example: '수정된 제목', description: '게시글 제목' })
+  @ApiProperty({ example: 'Updated Title', description: 'Post title' })
   @IsString()
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: '수정된 내용입니다.', description: '게시글 내용' })
+  @ApiProperty({ example: 'Updated content', description: 'Post content' })
   @IsString()
   @IsNotEmpty()
   content: string;
 
-  @ApiProperty({ enum: Permission, example: Permission.PUBLIC, description: '게시글 권한 설정' })
+  @ApiProperty({ enum: Permission, example: Permission.PUBLIC, description: 'Post permission setting' })
   @IsEnum(Permission)
   permission: Permission;
 } 

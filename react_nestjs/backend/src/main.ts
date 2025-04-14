@@ -17,10 +17,10 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
   
-  // Swagger 설정
+  // Swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('게시판 API')
-    .setDescription('게시판 API 문서')
+    .setTitle('Board API')
+    .setDescription('Board API Document')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

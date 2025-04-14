@@ -15,7 +15,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       if (!id) {
-        setError('잘못된 게시글 ID입니다.');
+        setError('Invalid post ID.');
         setLoading(false);
         return;
       }
@@ -23,12 +23,12 @@ export default function PostDetail() {
       try {
         const postId = parseInt(id, 10);
         if (isNaN(postId)) {
-          throw new Error('잘못된 게시글 ID입니다.');
+          throw new Error('Invalid post ID.');
         }
         const data = await getPost(postId);
         setPost(data);
       } catch (err) {
-        setError('게시글을 불러오는데 실패했습니다.');
+        setError('Failed to load post.');
       } finally {
         setLoading(false);
       }
@@ -39,23 +39,23 @@ export default function PostDetail() {
 
   const handleDelete = async () => {
     if (!id) {
-      setError('잘못된 게시글 ID입니다.');
+      setError('Invalid post ID.');
       return;
     }
 
-    if (!window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+    if (!window.confirm('Are you sure you want to delete this post?')) {
       return;
     }
 
     try {
       const postId = parseInt(id, 10);
       if (isNaN(postId)) {
-        throw new Error('잘못된 게시글 ID입니다.');
+        throw new Error('Invalid post ID.');
       }
       await deletePost(postId);
       navigate('/');
     } catch (err) {
-      setError('게시글 삭제에 실패했습니다.');
+      setError('Failed to delete post.');
     }
   };
 
@@ -63,7 +63,7 @@ export default function PostDetail() {
     return (
       <div className="text-center">
         <div className="spinner-border" role="status">
-          <span className="visually-hidden">로딩중...</span>
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
@@ -80,7 +80,7 @@ export default function PostDetail() {
   if (!post) {
     return (
       <div className="alert alert-warning" role="alert">
-        게시글을 찾을 수 없습니다.
+        Post not found.
       </div>
     );
   }
@@ -94,10 +94,10 @@ export default function PostDetail() {
               <h3 className="mb-0">{post.title}</h3>
               <div>
                 <span className="text-muted me-3">
-                  작성자: {post.author.username}
+                  Author: {post.author.username}
                 </span>
                 <span className="text-muted">
-                  작성일: {new Date(post.createdAt).toLocaleDateString()}
+                  Created: {new Date(post.createdAt).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function PostDetail() {
                 className="btn btn-secondary"
                 onClick={() => navigate('/')}
               >
-                목록으로
+                Back to List
               </button>
               {isAuthenticated && (
                 <div>
@@ -123,14 +123,14 @@ export default function PostDetail() {
                     className="btn btn-primary me-2"
                     onClick={() => navigate(`/posts/${id}/edit`)}
                   >
-                    수정
+                    Edit
                   </button>
                   <button
                     type="button"
                     className="btn btn-danger"
                     onClick={handleDelete}
                   >
-                    삭제
+                    Delete
                   </button>
                 </div>
               )}

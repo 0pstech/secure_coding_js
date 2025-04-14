@@ -25,7 +25,7 @@ export default function EditPost() {
           permission: post.permission || 'public'
         });
       } catch (err) {
-        setError('게시글을 불러오는데 실패했습니다.');
+        setError('Failed to load post.');
       } finally {
         setLoading(false);
       }
@@ -48,7 +48,7 @@ export default function EditPost() {
       await updatePost(Number(id), formData);
       navigate(`/posts/${id}`);
     } catch (err) {
-      setError('게시글 수정에 실패했습니다. 다시 시도해주세요.');
+      setError('Failed to update post. Please try again.');
     }
   };
 
@@ -60,7 +60,7 @@ export default function EditPost() {
     return (
       <div className="text-center">
         <div className="spinner-border" role="status">
-          <span className="visually-hidden">로딩중...</span>
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
@@ -71,7 +71,7 @@ export default function EditPost() {
       <div className="col-md-8">
         <div className="card">
           <div className="card-header">
-            <h3 className="text-center mb-0">게시글 수정</h3>
+            <h3 className="text-center mb-0">Edit Post</h3>
           </div>
           <div className="card-body">
             {error && (
@@ -81,7 +81,7 @@ export default function EditPost() {
             )}
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label htmlFor="title" className="form-label">제목</label>
+                <label htmlFor="title" className="form-label">Title</label>
                 <input
                   type="text"
                   className="form-control"
@@ -94,7 +94,7 @@ export default function EditPost() {
               </div>
               <div className="mb-3">
                 <div className="d-flex justify-content-between align-items-center mb-2">
-                  <label htmlFor="content" className="form-label mb-0">내용</label>
+                  <label htmlFor="content" className="form-label mb-0">Content</label>
                   <div className="form-check form-switch">
                     <input
                       className="form-check-input"
@@ -104,7 +104,7 @@ export default function EditPost() {
                       onChange={toggleEditMode}
                     />
                     <label className="form-check-label" htmlFor="editModeSwitch">
-                      HTML 모드 {isHtmlMode ? '켜짐' : '꺼짐'}
+                      HTML Mode {isHtmlMode ? 'On' : 'Off'}
                     </label>
                   </div>
                 </div>
@@ -120,12 +120,12 @@ export default function EditPost() {
                 />
                 {isHtmlMode && (
                   <div className="form-text text-muted mt-1">
-                    HTML 태그를 사용하여 내용을 편집할 수 있습니다.
+                    You can edit content using HTML tags.
                   </div>
                 )}
               </div>
               <div className="mb-3">
-                <label htmlFor="permission" className="form-label">공개 설정</label>
+                <label htmlFor="permission" className="form-label">Visibility</label>
                 <select
                   className="form-select"
                   id="permission"
@@ -134,8 +134,8 @@ export default function EditPost() {
                   onChange={handleChange}
                   required
                 >
-                  <option value="public">공개</option>
-                  <option value="private">비공개</option>
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
                 </select>
               </div>
               <div className="d-flex justify-content-between">
@@ -144,10 +144,10 @@ export default function EditPost() {
                   className="btn btn-secondary"
                   onClick={() => navigate(`/posts/${id}`)}
                 >
-                  취소
+                  Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  수정하기
+                  Update
                 </button>
               </div>
             </form>

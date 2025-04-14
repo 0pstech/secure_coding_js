@@ -17,7 +17,7 @@ export default function CreatePost() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      setError('로그인이 필요합니다.');
+      setError('Login is required.');
       return;
     }
 
@@ -30,7 +30,7 @@ export default function CreatePost() {
       await createPost(postData);
       navigate('/');
     } catch (err) {
-      setError('게시글 작성에 실패했습니다.');
+      setError('Failed to create post.');
     }
   };
 
@@ -49,17 +49,17 @@ export default function CreatePost() {
   if (!isAuthenticated) {
     return (
       <div className="alert alert-warning" role="alert">
-        로그인이 필요한 기능입니다.
+        Login is required to use this feature.
       </div>
     );
   }
 
   return (
     <div className="container form-container">
-      <h2 className="mb-4">게시글 작성</h2>
+      <h2 className="mb-4">Create Post</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="title" className="form-label">제목</label>
+          <label htmlFor="title" className="form-label">Title</label>
           <input
             type="text"
             className="form-control"
@@ -70,20 +70,20 @@ export default function CreatePost() {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="content" className="form-label">내용</label>
+          <label htmlFor="content" className="form-label">Content</label>
           <div className="editor-container">
             <div className="editor-tabs">
               <div
                 className={`editor-tab ${!isHtmlMode ? 'active' : ''}`}
                 onClick={() => handleModeChange('text')}
               >
-                텍스트 모드
+                Text Mode
               </div>
               <div
                 className={`editor-tab ${isHtmlMode ? 'active' : ''}`}
                 onClick={() => handleModeChange('html')}
               >
-                HTML 모드
+                HTML Mode
               </div>
             </div>
             <div className="editor-content">
@@ -112,7 +112,7 @@ export default function CreatePost() {
               onChange={(e) => setShowPreview(e.target.checked)}
             />
             <label className="form-check-label" htmlFor="showPreview">
-              미리보기 표시
+              Preview
             </label>
           </div>
           {showPreview && (
@@ -134,11 +134,11 @@ export default function CreatePost() {
               onChange={(e) => setIsPublic(e.target.checked)}
             />
             <label className="form-check-label" htmlFor="isPublic">
-              공개 게시글
+              Public Post
             </label>
           </div>
           <small className="text-muted">
-            체크 해제 시 비공개 게시글로 작성됩니다.
+            Uncheck to create a private post.
           </small>
         </div>
         {error && (
@@ -152,10 +152,10 @@ export default function CreatePost() {
             className="btn btn-secondary"
             onClick={() => navigate('/')}
           >
-            취소
+            Cancel
           </button>
           <button type="submit" className="btn btn-primary">
-            작성하기
+            Create
           </button>
         </div>
       </form>

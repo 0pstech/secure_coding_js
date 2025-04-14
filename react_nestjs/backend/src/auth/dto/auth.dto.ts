@@ -6,22 +6,22 @@ export class RegisterDto {
   @MinLength(3)
   username: string;
 
-  @ApiProperty({ example: 'user@example.com', description: '사용자 이메일' })
+  @ApiProperty({ example: 'user@example.com', description: 'User email' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'password123', description: '비밀번호 (최소 6자)' })
+  @ApiProperty({ example: 'password123', description: 'Password (minimum 6 characters)' })
   @IsString()
   @MinLength(6)
   password: string;
 }
 
 export class LoginDto {
-  @ApiProperty({ example: 'user123', description: '사용자 아이디' })
+  @ApiProperty({ example: 'user123', description: 'Username' })
   @IsString()
   username: string;
 
-  @ApiProperty({ example: 'password123', description: '비밀번호' })
+  @ApiProperty({ example: 'password123', description: 'Password' })
   @IsString()
   password: string;
 } 

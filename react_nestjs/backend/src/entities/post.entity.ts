@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
 
 export enum Permission {
@@ -17,8 +17,9 @@ export class Post {
   @Column('text')
   content: string;
 
-  @Column({ name: 'author_id' })
-  authorId: number;
+  @ManyToOne(() => User, user => user.posts, { eager: true })
+  @JoinColumn({ name: 'author_id' })
+  author: User;
 
   @Column({
     type: 'enum',
@@ -32,7 +33,4 @@ export class Post {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
-  @ManyToOne(() => User, user => user.posts)
-  author: User;
 } 

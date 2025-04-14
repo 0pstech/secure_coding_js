@@ -40,4 +40,10 @@ export interface UpdatePostDto {
   title: string;
   content: string;
   permission: 'public' | 'private';
+}
+
+export interface CreatePostDto {
+  title: string;
+  content: string;
+  permission: 'public' | 'private';
 } 

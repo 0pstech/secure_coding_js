@@ -1,5 +1,5 @@
 import client from './client';
-import { Post, CreatePostDto, UpdatePostDto } from '../types';
+import { CreatePostDto, Post } from '../types';
 
 export const getPosts = async (): Promise<Post[]> => {
   const response = await client.get<Post[]>('/posts');
@@ -16,7 +16,7 @@ export const createPost = async (data: CreatePostDto): Promise<Post> => {
   return response.data;
 };
 
-export const updatePost = async (id: number, data: UpdatePostDto): Promise<Post> => {
+export const updatePost = async (id: number, data: Partial<Post>): Promise<Post> => {
   const response = await client.put<Post>(`/posts/${id}`, data);
   return response.data;
 };

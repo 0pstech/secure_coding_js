@@ -15,8 +15,7 @@ export class PostsService {
   async create(createPostDto: CreatePostDto, user: User): Promise<Post> {
     const post = this.postsRepository.create({
       ...createPostDto,
-      author: user,
-      authorId: user.id
+      author: user
     });
     return await this.postsRepository.save(post);
   }
@@ -25,9 +24,8 @@ export class PostsService {
     return this.postsRepository.find({
       where: [
         { permission: Permission.PUBLIC },
-        { authorId: user.id }
+        { author: { id: user.id } }
       ],
-      relations: ['author'],
       order: { createdAt: 'DESC' }
     });
   }
@@ -42,7 +40,7 @@ export class PostsService {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
 
-    if (post.permission === Permission.PRIVATE && post.authorId !== user.id) {
+    if (post.permission === Permission.PRIVATE && post.author.id !== user.id) {
       throw new ForbiddenException('You do not have permission to view this post');
     }
 
@@ -52,7 +50,7 @@ export class PostsService {
   async update(id: number, updatePostDto: any, user: User): Promise<Post> {
     const post = await this.findOne(id, user);
 
-    if (post.authorId !== user.id) {
+    if (post.author.id !== user.id) {
       throw new ForbiddenException('You can only update your own posts');
     }
 
@@ -63,7 +61,7 @@ export class PostsService {
   async remove(id: number, user: User): Promise<void> {
     const post = await this.findOne(id, user);
 
-    if (post.authorId !== user.id) {
+    if (post.author.id !== user.id) {
       throw new ForbiddenException('You can only delete your own posts');
     }
 

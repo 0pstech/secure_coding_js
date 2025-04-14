@@ -23,7 +23,7 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.');
+      setError('Passwords do not match.');
       return;
     }
 
@@ -35,7 +35,7 @@ export default function Register() {
       });
       navigate('/login');
     } catch (err) {
-      setError('회원가입에 실패했습니다. 다시 시도해주세요.');
+      setError('Registration failed. Please try again.');
     }
   };
 
@@ -44,7 +44,7 @@ export default function Register() {
       <div className="col-md-6 col-lg-4">
         <div className="card">
           <div className="card-header">
-            <h3 className="text-center mb-0">회원가입</h3>
+            <h3 className="text-center mb-0">Register</h3>
           </div>
           <div className="card-body">
             {error && (
@@ -54,7 +54,7 @@ export default function Register() {
             )}
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label htmlFor="username" className="form-label">사용자 이름</label>
+                <label htmlFor="username" className="form-label">Username</label>
                 <input
                   type="text"
                   className="form-control"
@@ -66,7 +66,7 @@ export default function Register() {
                 />
               </div>
               <div className="mb-3">
-                <label htmlFor="email" className="form-label">이메일</label>
+                <label htmlFor="email" className="form-label">Email</label>
                 <input
                   type="email"
                   className="form-control"
@@ -78,7 +78,7 @@ export default function Register() {
                 />
               </div>
               <div className="mb-3">
-                <label htmlFor="password" className="form-label">비밀번호</label>
+                <label htmlFor="password" className="form-label">Password</label>
                 <input
                   type="password"
                   className="form-control"
@@ -90,7 +90,7 @@ export default function Register() {
                 />
               </div>
               <div className="mb-3">
-                <label htmlFor="confirmPassword" className="form-label">비밀번호 확인</label>
+                <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
                 <input
                   type="password"
                   className="form-control"
@@ -103,15 +103,15 @@ export default function Register() {
               </div>
               <div className="d-grid">
                 <button type="submit" className="btn btn-primary">
-                  회원가입
+                  Register
                 </button>
               </div>
             </form>
             <div className="text-center mt-3">
               <p className="mb-0">
-                이미 계정이 있으신가요?{' '}
+                Already have an account?{' '}
                 <Link to="/login" className="text-decoration-none">
-                  로그인
+                  Login
                 </Link>
               </p>
             </div>
