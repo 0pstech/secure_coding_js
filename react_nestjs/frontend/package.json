@@ -15,7 +15,9 @@
     "@popperjs/core": "^2.11.8",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.6.0",
+    "bcryptjs": "^3.0.2",
     "bootstrap": "^5.3.3",
+    "openai": "^4.94.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0"

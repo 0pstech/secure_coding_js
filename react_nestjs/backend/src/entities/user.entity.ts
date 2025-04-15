@@ -12,6 +12,9 @@ export class User {
   @Column({ length: 255 })
   password: string;
 
+  @Column({ name: 'is_admin', default: false })
+  isAdmin: boolean;
+
   @Column({ length: 100, unique: true })
   email: string;
 
