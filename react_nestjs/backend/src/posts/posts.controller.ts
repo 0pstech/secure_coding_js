@@ -13,7 +13,7 @@ export class PostsController {
   private readonly logger = new Logger(PostsController.name);
 
   constructor(private readonly postsService: PostsService) {}
-
+// /posts
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

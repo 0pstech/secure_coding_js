@@ -1,34 +1,28 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 
 const client = axios.create({
   baseURL: 'http://localhost:3000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  withCredentials: true,
 });
 
-// 요청 인터셉터
-client.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
+const token = localStorage.getItem('token');
+
+// Request interceptor
+if (token) {
+  client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+    if (config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
+  });
+}
+
+// Response interceptor
+client.interceptors.response.use(
+  (response) => {
+    return response;
   },
   (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// 응답 인터셉터
-client.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
     return Promise.reject(error);
   }
 );

@@ -16,9 +16,10 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const { username, email, password } = registerDto;
+
     console.log('registerDTO : ', registerDto);
 
-    // SQL 인젝션에 취약한 중복 체크 쿼리 (QueryBuilder 사용)
+    // Vulnerable to SQL injection - duplicate check query using QueryBuilder
     const existingUser = await this.usersRepository
       .createQueryBuilder('user')
       .where(`user.username = '${username}' OR user.email = '${email}'`)
@@ -31,16 +32,15 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // SQL 인젝션에 취약한 유저 생성 쿼리 (QueryBuilder 사용)
     await this.usersRepository
       .createQueryBuilder()
       .insert()
       .into(User)
       .values({
-        username: () => `'${username}'`,
-        email: () => `'${email}'`,
-        password: () => `'${hashedPassword}'`,
-        isAdmin: () => 'false',  // 기본값은 false이지만 SQL 인젝션으로 우회 가능
+        username,
+        password: hashedPassword,
+        email,
+        isAdmin: false,
         createdAt: () => 'NOW()'
       })
       .execute();
