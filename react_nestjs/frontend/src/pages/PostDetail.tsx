@@ -85,8 +85,6 @@ export default function PostDetail() {
     );
   }
 
-  const contentHtml = post.content.split('\n').map(line => `<p>${line}</p>`).join('');
-
   return (
     <div className="row justify-content-center">
       <div className="col-md-8">
@@ -105,7 +103,11 @@ export default function PostDetail() {
             </div>
           </div>
           <div className="card-body">
-            <div className="mb-4" dangerouslySetInnerHTML={{ __html: contentHtml }} />
+            <div className="mb-4">
+              {post.content.split('\n').map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
+            </div>
             <div className="d-flex justify-content-between">
               <button
                 type="button"
