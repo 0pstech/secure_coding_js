@@ -1,0 +1,147 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f3f4f6;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.navbar {
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+  font-weight: bold;
+  color: #333;
+}
+
+.nav-link {
+  color: #666;
+  margin: 0 10px;
+}
+
+.nav-link:hover {
+  color: #333;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.card-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #eee;
+}
+
+.table {
+  background-color: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.alert {
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.form-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.editor-container {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.editor-tabs {
+  display: flex;
+  margin-bottom: 0.5rem;
+}
+
+.editor-tab {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-bottom: none;
+  border-radius: 0.25rem 0.25rem 0 0;
+  margin-right: 0.25rem;
+}
+
+.editor-tab.active {
+  background-color: #fff;
+  border-bottom: 1px solid #fff;
+  margin-bottom: -1px;
+  z-index: 1;
+}
+
+.editor-content {
+  border: 1px solid #dee2e6;
+  border-radius: 0 0.25rem 0.25rem 0.25rem;
+  padding: 0.5rem;
+  min-height: 400px;
+}
+
+#textEditor, #htmlEditor {
+  width: 100%;
+  min-height: 400px;
+  padding: 0.5rem;
+  font-family: monospace;
+  resize: vertical;
+}
+
+#preview {
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  min-height: 200px;
+  background-color: #fff;
+}
+
+.post-row {
+  transition: background-color 0.2s ease;
+}
+
+.post-row:hover {
+  background-color: #f8f9fa;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+} 
